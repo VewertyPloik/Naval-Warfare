@@ -45,12 +45,12 @@
             padding: 8px 20px; border-radius: 8px; border: 2px solid gold;
         }
 
-        /* --- IN-GAME UI (Hidden initially) --- */
+        /* --- IN-GAME UI --- */
         #top-ui {
             position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
             width: 90%; display: flex; justify-content: space-between; z-index: 20;
             pointer-events: none; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-            display: none; /* Hidden on menu */
+            display: none;
         }
         .center-ui { display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto; }
         #timer-box { font-size: 28px; font-weight: bold; color: white; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; border: 2px solid white; pointer-events: none; }
@@ -58,13 +58,35 @@
         #scoreboard { background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; color: white; font-size: 16px; border: 2px solid #555; pointer-events: none; }
         .score-row { display: flex; justify-content: space-between; margin-bottom: 4px; gap: 20px; font-weight: bold; }
 
-        /* Modals (Shop & Manual) */
+        /* RADAR / MINIMAP */
+        #minimap-container {
+            position: absolute; top: 10px; right: 10px; z-index: 30;
+            width: 120px; height: 120px; border: 3px solid #66aaff; border-radius: 8px;
+            background: rgba(0, 20, 40, 0.8); display: none; pointer-events: auto; cursor: pointer;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.5); transition: all 0.2s ease-out;
+        }
+        #minimap-canvas { width: 100%; height: 100%; border-radius: 4px; }
+        
+        #minimap-overlay {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7); z-index: 290; display: none; pointer-events: auto;
+        }
+        #minimap-container.fullscreen {
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80vmin; height: 80vmin; z-index: 300; border-color: gold; border-width: 5px;
+        }
+
+        /* Modals */
         .modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(20, 20, 20, 0.95); padding: 25px; border-radius: 12px; 
             color: white; z-index: 250; display: none; min-width: 250px; text-align: center; pointer-events: auto;
         }
-        #shop-modal { border: 3px solid #ffaa00; }
+        #mode-modal { border: 3px solid #ff4444; min-width: 300px; }
+        #mode-modal h2 { margin: 0 0 20px 0; color: #ff4444; }
+        #mode-modal .mode-btn { font-size: 20px; padding: 15px; width: 100%; margin-bottom: 15px; }
+
+        #shop-modal { border: 3px solid #ffaa00; min-width: 300px; }
         #shop-modal h2 { margin: 0 0 15px 0; color: #ffaa00; }
         
         #manual-modal { border: 3px solid #2266ff; max-width: 400px; text-align: left; }
@@ -75,7 +97,7 @@
         .shop-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 10px; margin-bottom: 10px; border-radius: 8px; }
         .buy-btn { background: #44cc44; border: none; padding: 8px 12px; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
         .buy-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
-        .close-btn { margin-top: 15px; background: #cc4444; border: none; padding: 8px 20px; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; width: 100%; }
+        .close-btn { margin-top: 15px; background: #cc4444; border: none; padding: 8px 20px; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; }
 
         .joystick-zone { position: absolute; bottom: 0; width: 40%; height: 50%; z-index: 10; display: none; }
         #left-zone { left: 0; }
@@ -103,7 +125,6 @@
         
         #spec-text { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: white; font-size: 20px; font-weight: bold; display: none; z-index: 20; text-shadow: 2px 2px 4px #000; pointer-events: none; }
 
-        /* Creator Watermark */
         #watermark {
             position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
             color: white; opacity: 0.3; font-size: 14px; font-weight: bold; z-index: 210; pointer-events: none;
@@ -134,7 +155,20 @@
         <div class="center-ui">
             <div id="timer-box">2:00</div>
         </div>
-        <div style="width: 120px;"></div> </div>
+        <div style="width: 120px;"></div>
+    </div>
+
+    <div id="minimap-overlay"></div>
+    <div id="minimap-container">
+        <canvas id="minimap-canvas" width="400" height="400"></canvas>
+    </div>
+
+    <div id="mode-modal" class="modal">
+        <h2>SELECT GAMEMODE</h2>
+        <button class="home-btn mode-btn" id="btn-ffa">FREE FOR ALL</button>
+        <button class="home-btn mode-btn" id="btn-teams">3v3 TEAMS</button>
+        <button id="close-mode" class="close-btn">Cancel</button>
+    </div>
 
     <div id="shop-modal" class="modal">
         <h2>DOCKYARD SHOP</h2>
@@ -146,6 +180,10 @@
             <span style="text-align: left;">Reload <br><small id="reload-lvl-txt" style="color:#aaa;">Lv.0</small></span>
             <button class="buy-btn" id="buy-reload-btn">50 🪙</button>
         </div>
+        <div class="shop-item">
+            <span style="text-align: left;">Radar <br><small id="radar-status-txt" style="color:#aaa;">Not Owned</small></span>
+            <button class="buy-btn" id="buy-radar-btn">300 🪙</button>
+        </div>
         <button id="close-shop" class="close-btn">Done</button>
     </div>
 
@@ -153,9 +191,10 @@
         <h2>HOW TO PLAY</h2>
         <p>🕹️ <b>Controls:</b> Use the left joystick to drive your boat. Drag anywhere on the right side of the screen to look around.</p>
         <p>🎯 <b>Shooting:</b> Hold the red button to aim your cannon. Release the button to fire at the red target circle.</p>
-        <p>🪙 <b>Upgrades:</b> You get +5 Coins for every piece you blast off an enemy ship. Spend them in the shop to upgrade speed and reload times!</p>
+        <p>🪙 <b>Upgrades:</b> You get +5 Coins for every piece you blast off an enemy ship. Spend them in the shop to upgrade stats or buy a Radar.</p>
+        <p>📡 <b>Radar:</b> Once purchased, a minimap appears in the top right. <b>Blue = Allies, Red = Enemies.</b> Tap the minimap to expand it fullscreen!</p>
+        <p>⚔️ <b>Modes:</b> Play Free-For-All (FFA) or join a random squad in 3v3 TEAMS. In Teams, friendly fire is disabled!</p>
         <p>💥 <span class="highlight">PRO TIP:</span> If you manage to hit an enemy boat's <b>CANNON</b> directly, their entire ship will instantly explode and be eliminated!</p>
-        <p>🏆 <b>Winning:</b> Be the last boat standing, or have the most pieces destroyed when the 2:00 timer runs out.</p>
         <button id="close-manual" class="close-btn">Got it!</button>
     </div>
     
@@ -176,11 +215,13 @@
         let coins = parseInt(localStorage.getItem('boatArenaCoins')) || 0;
         let speedLvl = parseInt(localStorage.getItem('boatArenaSpeed')) || 0;
         let reloadLvl = parseInt(localStorage.getItem('boatArenaReload')) || 0;
+        let hasRadar = localStorage.getItem('boatArenaRadar') === 'true';
 
         function saveProgress() {
             localStorage.setItem('boatArenaCoins', coins);
             localStorage.setItem('boatArenaSpeed', speedLvl);
             localStorage.setItem('boatArenaReload', reloadLvl);
+            localStorage.setItem('boatArenaRadar', hasRadar);
             updateShopUI();
         }
 
@@ -199,23 +240,37 @@
             const reloadBtn = document.getElementById('buy-reload-btn');
             reloadBtn.innerText = `${getReloadPrice()} 🪙`;
             reloadBtn.disabled = coins < getReloadPrice();
+
+            const radarBtn = document.getElementById('buy-radar-btn');
+            if (hasRadar) {
+                document.getElementById('radar-status-txt').innerText = "Owned";
+                document.getElementById('radar-status-txt').style.color = "#66ff66";
+                radarBtn.innerText = "OWNED";
+                radarBtn.disabled = true;
+                radarBtn.style.background = "#555";
+            } else {
+                radarBtn.innerText = "300 🪙";
+                radarBtn.disabled = coins < 300;
+            }
         }
 
-        // Home Menu Buttons
-        document.getElementById('home-shop-btn').addEventListener('click', () => {
-            document.getElementById('shop-modal').style.display = 'block';
-            updateShopUI();
+        // Menus
+        document.getElementById('home-shop-btn').addEventListener('click', () => { document.getElementById('shop-modal').style.display = 'block'; updateShopUI(); });
+        document.getElementById('close-shop').addEventListener('click', () => { document.getElementById('shop-modal').style.display = 'none'; });
+        document.getElementById('home-manual-btn').addEventListener('click', () => { document.getElementById('manual-modal').style.display = 'block'; });
+        document.getElementById('close-manual').addEventListener('click', () => { document.getElementById('manual-modal').style.display = 'none'; });
+        
+        document.getElementById('home-play-btn').addEventListener('click', () => {
+            document.getElementById('mode-modal').style.display = 'block';
         });
-        document.getElementById('close-shop').addEventListener('click', () => {
-            document.getElementById('shop-modal').style.display = 'none';
+        document.getElementById('close-mode').addEventListener('click', () => {
+            document.getElementById('mode-modal').style.display = 'none';
         });
 
-        document.getElementById('home-manual-btn').addEventListener('click', () => {
-            document.getElementById('manual-modal').style.display = 'block';
-        });
-        document.getElementById('close-manual').addEventListener('click', () => {
-            document.getElementById('manual-modal').style.display = 'none';
-        });
+        // Mode Selection
+        let gameMode = 'ffa';
+        document.getElementById('btn-ffa').addEventListener('click', () => startGame('ffa'));
+        document.getElementById('btn-teams').addEventListener('click', () => startGame('teams'));
 
         // Shop Purchases
         document.getElementById('buy-speed-btn').addEventListener('click', () => {
@@ -224,13 +279,27 @@
         document.getElementById('buy-reload-btn').addEventListener('click', () => {
             if (coins >= getReloadPrice()) { coins -= getReloadPrice(); reloadLvl++; saveProgress(); }
         });
-        
-        // Return to Menu Button
-        document.getElementById('rematch-btn').addEventListener('click', () => {
-            location.reload(); // Cleanly resets to the Home Screen
+        document.getElementById('buy-radar-btn').addEventListener('click', () => {
+            if (coins >= 300 && !hasRadar) { coins -= 300; hasRadar = true; saveProgress(); }
         });
+        
+        document.getElementById('rematch-btn').addEventListener('click', () => { location.reload(); });
+        updateShopUI(); 
 
-        updateShopUI(); // Init UI
+        // RADAR FULLSCREEN LOGIC
+        const minimapContainer = document.getElementById('minimap-container');
+        const minimapOverlay = document.getElementById('minimap-overlay');
+        function toggleFullscreenRadar() {
+            if (minimapContainer.classList.contains('fullscreen')) {
+                minimapContainer.classList.remove('fullscreen');
+                minimapOverlay.style.display = 'none';
+            } else {
+                minimapContainer.classList.add('fullscreen');
+                minimapOverlay.style.display = 'block';
+            }
+        }
+        minimapContainer.addEventListener('click', toggleFullscreenRadar);
+        minimapOverlay.addEventListener('click', toggleFullscreenRadar);
 
         // --- 1. BASIC SETUP ---
         const container = document.getElementById('game-container');
@@ -260,32 +329,32 @@
         scene.add(ocean);
 
         // --- GAME STATE VARIABLES ---
-        let gameState = 'menu'; // Starts in menu
+        let gameState = 'menu'; 
         let timeLeft = 120; 
         let isSpectating = false;
         let specCamPos = new THREE.Vector3(0, 20, 0);
         let timerInterval;
+        let activeTeams = []; 
 
         const timerEl = document.getElementById('timer-box');
         const scoreEl = document.getElementById('scoreboard');
         const goMenu = document.getElementById('game-over');
         const specText = document.getElementById('spec-text');
-        
-        const teams = [
-            { name: "You (Blue)", color: 0x2266ff, uiColor: "#66aaff", isPlayer: true },
-            { name: "Red", color: 0xcc2222, uiColor: "#ff6666", isPlayer: false },
-            { name: "Green", color: 0x22aa33, uiColor: "#66ff66", isPlayer: false },
-            { name: "Yellow", color: 0xddaa00, uiColor: "#ffff66", isPlayer: false },
-            { name: "Purple", color: 0x8822cc, uiColor: "#cc66ff", isPlayer: false }
-        ];
 
         function updateScoreboard() {
-            let sorted = [...teams].sort((a, b) => b.score - a.score);
-            let html = '';
-            sorted.forEach(t => {
-                html += `<div class="score-row" style="color:${t.uiColor}"><span>${t.name}</span><span>${t.score} pieces</span></div>`;
-            });
-            scoreEl.innerHTML = html;
+            if (gameMode === 'ffa') {
+                let sorted = [...activeTeams].sort((a, b) => b.score - a.score);
+                let html = '';
+                sorted.forEach(t => { html += `<div class="score-row" style="color:${t.uiColor}"><span>${t.name}</span><span>${t.score} pieces</span></div>`; });
+                scoreEl.innerHTML = html;
+            } else {
+                let yellowAlive = allBoats.filter(b => b.team.alliance === 1 && !b.isEliminated).length;
+                let pinkAlive = allBoats.filter(b => b.team.alliance === 2 && !b.isEliminated).length;
+                scoreEl.innerHTML = `
+                    <div class="score-row" style="color:#ffff66; font-size:18px;"><span>Yellow Team:</span><span>${yellowAlive} Alive</span></div>
+                    <div class="score-row" style="color:#ff99cc; font-size:18px;"><span>Pink Team:</span><span>${pinkAlive} Alive</span></div>
+                `;
+            }
         }
 
         // --- 2. DESTRUCTIBLE BOATS ---
@@ -295,11 +364,10 @@
             glass: new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.1, metalness: 0.9 })
         };
 
-        const allBoats = [];
+        let allBoats = [];
         let playerBoat = null;
 
         function createDestructibleBoat(teamData) {
-            teamData.score = 0; 
             const boatData = {
                 team: teamData, group: new THREE.Group(), parts: [], 
                 speed: 0, isPlayer: teamData.isPlayer, isEliminated: false, 
@@ -432,19 +500,32 @@
                 setTimeout(() => { if(gameState === 'playing') goMenu.style.display = 'none'; }, 3000);
             }
 
-            // Check Last Standing Win Condition
-            let aliveBoats = allBoats.filter(b => !b.isEliminated);
-            if (aliveBoats.length === 1 && gameState === 'playing') {
-                setTimeout(() => endGame(aliveBoats[0].team), 1500); 
-            } else if (aliveBoats.length === 0 && gameState === 'playing') {
-                setTimeout(() => endGame(null), 1500); // Draw
+            updateScoreboard();
+
+            // Win Condition Checks
+            if (gameMode === 'ffa') {
+                let aliveBoats = allBoats.filter(b => !b.isEliminated);
+                if (aliveBoats.length === 1 && gameState === 'playing') {
+                    setTimeout(() => endGame(aliveBoats[0].team), 1500); 
+                } else if (aliveBoats.length === 0 && gameState === 'playing') {
+                    setTimeout(() => endGame(null), 1500); 
+                }
+            } else {
+                let yellowAlive = allBoats.filter(b => b.team.alliance === 1 && !b.isEliminated).length;
+                let pinkAlive = allBoats.filter(b => b.team.alliance === 2 && !b.isEliminated).length;
+                
+                if (yellowAlive === 0 && gameState === 'playing') {
+                    setTimeout(() => endGame({name: "Pink Team", isPlayer: playerBoat.team.alliance === 2}), 1500);
+                } else if (pinkAlive === 0 && gameState === 'playing') {
+                    setTimeout(() => endGame({name: "Yellow Team", isPlayer: playerBoat.team.alliance === 1}), 1500);
+                }
             }
         }
 
         // --- 4. CONTROLS ---
         let moveInput = { forward: 0, turn: 0 };
         let camYaw = 0, camPitch = 0.3;     
-        let leftJoy; // Init when game starts
+        let leftJoy; 
 
         let isDraggingCam = false;
         let lastTouchX = 0, lastTouchY = 0;
@@ -524,38 +605,63 @@
 
         // --- 5. GAME LOGIC & INITIALIZATION ---
         
-        document.getElementById('home-play-btn').addEventListener('click', () => {
+        function spawnBoatHelper(teamData) {
+            let boat = createDestructibleBoat(teamData);
+            if (teamData.isPlayer) {
+                playerBoat = boat;
+            } else {
+                boat.group.position.set((Math.random() - 0.5) * 120, 0, (Math.random() - 0.5) * 120 - 40);
+                boat.group.rotation.y = Math.random() * Math.PI * 2;
+            }
+            allBoats.push(boat);
+        }
+
+        function startGame(mode) {
+            gameMode = mode;
+            document.getElementById('mode-modal').style.display = 'none';
             document.getElementById('home-screen').style.display = 'none';
             document.getElementById('top-ui').style.display = 'flex';
             document.getElementById('shoot-pad').style.display = 'flex';
             document.getElementById('left-zone').style.display = 'block';
             document.getElementById('right-drag-zone').style.display = 'block';
             
+            if (hasRadar) {
+                document.getElementById('minimap-container').style.display = 'block';
+            }
+            
             initBattle();
-        });
+        }
 
         function initBattle() {
             gameState = 'playing';
+            allBoats = [];
+            activeTeams = [];
 
-            // Spawn Boats
-            teams.forEach((team) => {
-                let boat = createDestructibleBoat(team);
-                if (team.isPlayer) {
-                    playerBoat = boat;
-                } else {
-                    boat.group.position.set((Math.random() - 0.5) * 120, 0, (Math.random() - 0.5) * 120 - 40);
-                    boat.group.rotation.y = Math.random() * Math.PI * 2;
+            if (gameMode === 'ffa') {
+                const ffaTeams = [
+                    { name: "You (Blue)", color: 0x2266ff, uiColor: "#66aaff", isPlayer: true, score: 0, alliance: 1 },
+                    { name: "Red", color: 0xcc2222, uiColor: "#ff6666", isPlayer: false, score: 0, alliance: 2 },
+                    { name: "Green", color: 0x22aa33, uiColor: "#66ff66", isPlayer: false, score: 0, alliance: 3 },
+                    { name: "Yellow", color: 0xddaa00, uiColor: "#ffff66", isPlayer: false, score: 0, alliance: 4 },
+                    { name: "Purple", color: 0x8822cc, uiColor: "#cc66ff", isPlayer: false, score: 0, alliance: 5 }
+                ];
+                ffaTeams.forEach(t => { activeTeams.push(t); spawnBoatHelper(t); });
+            } else {
+                const isPlayerYellow = Math.random() > 0.5;
+                for(let i=0; i<3; i++) {
+                    spawnBoatHelper({ name: "Yellow Team", color: 0xddaa00, uiColor: "#ffff66", isPlayer: (isPlayerYellow && i===0), alliance: 1 });
                 }
-                allBoats.push(boat);
-            });
+                for(let i=0; i<3; i++) {
+                    spawnBoatHelper({ name: "Pink Team", color: 0xff66b2, uiColor: "#ff99cc", isPlayer: (!isPlayerYellow && i===0), alliance: 2 });
+                }
+            }
+
             updateScoreboard();
 
-            // Setup Joystick (Safe to do now since UI is visible)
             leftJoy = nipplejs.create({ zone: document.getElementById('left-zone'), mode: 'static', position: { left: '25%', bottom: '25%' }, color: 'white' });
             leftJoy.on('move', (evt, data) => { moveInput.forward = data.vector.y; moveInput.turn = data.vector.x; });
             leftJoy.on('end', () => { moveInput.forward = 0; moveInput.turn = 0; });
 
-            // Start Timer
             timerInterval = setInterval(() => {
                 if (gameState !== 'playing') return;
                 timeLeft--;
@@ -572,12 +678,21 @@
             
             let winner = forcedWinner;
             if (!winner) { 
-                let sorted = [...teams].sort((a, b) => b.score - a.score);
-                winner = sorted[0];
+                if (gameMode === 'ffa') {
+                    let sorted = [...activeTeams].sort((a, b) => b.score - a.score);
+                    winner = sorted[0];
+                } else {
+                    let yellowAlive = allBoats.filter(b => b.team.alliance === 1 && !b.isEliminated).length;
+                    let pinkAlive = allBoats.filter(b => b.team.alliance === 2 && !b.isEliminated).length;
+                    if (yellowAlive > pinkAlive) winner = {name: "Yellow Team", isPlayer: playerBoat.team.alliance === 1};
+                    else if (pinkAlive > yellowAlive) winner = {name: "Pink Team", isPlayer: playerBoat.team.alliance === 2};
+                }
             }
 
             goMenu.style.display = 'block';
             specText.style.display = 'none';
+            document.getElementById('minimap-container').style.display = 'none';
+            document.getElementById('minimap-overlay').style.display = 'none';
 
             if (winner) {
                 document.getElementById('go-text').innerText = `${winner.name} won!`;
@@ -591,7 +706,7 @@
                 }
             } else {
                 document.getElementById('go-title').innerText = "DRAW";
-                document.getElementById('go-text').innerText = "Everyone was eliminated!";
+                document.getElementById('go-text').innerText = "It's a tie!";
             }
         }
 
@@ -608,6 +723,42 @@
             }
         }
 
+        // --- RENDER MINIMAP ---
+        function renderMinimap() {
+            if (!hasRadar || gameState !== 'playing') return;
+            const canvas = document.getElementById('minimap-canvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const worldBounds = 180; 
+            const halfBounds = worldBounds / 2;
+
+            allBoats.forEach(boat => {
+                if (boat.isEliminated) return;
+                
+                let mapX = ((boat.group.position.x + halfBounds) / worldBounds) * width;
+                let mapY = ((boat.group.position.z + halfBounds) / worldBounds) * height;
+
+                mapX = Math.max(10, Math.min(width - 10, mapX));
+                mapY = Math.max(10, Math.min(height - 10, mapY));
+
+                ctx.beginPath();
+                ctx.arc(mapX, mapY, 8, 0, Math.PI * 2);
+                
+                // Blue for Allies (including yourself), Red for Enemies
+                let isAlly = (boat.team.alliance === playerBoat.team.alliance);
+                ctx.fillStyle = isAlly ? '#2266ff' : '#ff4444';
+                
+                ctx.fill();
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = 'white';
+                ctx.stroke();
+            });
+        }
+
         // --- 6. GAME LOOP ---
         const tempVec = new THREE.Vector3();
 
@@ -616,16 +767,16 @@
             const time = Date.now() * 0.002;
 
             if (gameState === 'menu') {
-                // Cool rotating camera for the Home Screen
                 camera.position.set(Math.sin(time * 0.2) * 40, 15, Math.cos(time * 0.2) * 40);
                 camera.lookAt(0, 0, 0);
                 renderer.render(scene, camera);
-                return; // Skip physics/AI updates
+                return; 
             }
 
             if (gameState === 'playing') {
                 
-                // Player Boat Movement
+                renderMinimap(); 
+
                 if (!isSpectating && !playerBoat.isEliminated) {
                     let accel = 0.01 + (speedLvl * 0.002);
                     playerBoat.speed += moveInput.forward * accel;
@@ -645,13 +796,13 @@
                     }
                 }
 
-                // AI Logic
                 allBoats.forEach((ai, i) => {
                     if (ai.isPlayer || ai.isEliminated || ai.parts.length === 0) return;
                     
                     let closestTarget = null, minTargetDist = Infinity;
                     allBoats.forEach(b => {
-                        if (b === ai || b.isEliminated || b.parts.length === 0) return; 
+                        // Ignore dead boats, yourself, or teammates (same alliance)
+                        if (b === ai || b.isEliminated || b.parts.length === 0 || b.team.alliance === ai.team.alliance) return; 
                         let dist = ai.group.position.distanceTo(b.group.position);
                         if(dist < minTargetDist) { minTargetDist = dist; closestTarget = b; }
                     });
@@ -684,9 +835,8 @@
                             let aimTarget = closestTarget.group.position.clone();
                             let hitRoll = Math.random();
                             
-                            if (hitRoll <= 0.05) {
-                                aimTarget.y += 1.5; 
-                            } else if (hitRoll <= 0.40) {
+                            if (hitRoll <= 0.05) { aimTarget.y += 1.5; } 
+                            else if (hitRoll <= 0.40) {
                                 let offsetAngle = Math.random() * Math.PI * 2;
                                 let offsetDist = 2.5 + Math.random() * 2; 
                                 aimTarget.x += Math.cos(offsetAngle) * offsetDist;
@@ -710,7 +860,6 @@
                 });
             }
 
-            // Projectiles
             for (let i = cannonballs.length - 1; i >= 0; i--) {
                 const b = cannonballs[i];
                 b.position.x += b.userData.vx;
@@ -721,7 +870,8 @@
                 let hitSomething = false;
 
                 for (let boat of allBoats) {
-                    if (boat.isEliminated || b.userData.owner === boat) continue; 
+                    // Do not collide with dead boats, own boat, or teammates (same alliance)
+                    if (boat.isEliminated || b.userData.owner === boat || b.userData.owner.team.alliance === boat.team.alliance) continue; 
                     if (b.position.distanceTo(boat.group.position) > 12) continue;
 
                     for (let pIndex = boat.parts.length - 1; pIndex >= 0; pIndex--) {
@@ -746,13 +896,16 @@
                             brokenDebris.push(part);
                             boat.parts.splice(pIndex, 1); 
 
-                            b.userData.owner.team.score += 1;
-                            updateScoreboard();
-
+                            // Update score ONLY for the team that shot it (relevant for FFA)
+                            if (gameMode === 'ffa') {
+                                b.userData.owner.team.score += 1;
+                            }
+                            
                             if (b.userData.owner.isPlayer) {
                                 coins += 5;
                                 saveProgress();
                             }
+                            updateScoreboard();
 
                             if (isCannonHit) {
                                 eliminateBoat(boat);
@@ -769,7 +922,6 @@
                 }
             }
 
-            // Update Explosion Particles
             for (let i = explosionParticles.length - 1; i >= 0; i--) {
                 let p = explosionParticles[i];
                 p.position.x += p.userData.vx;
@@ -784,7 +936,6 @@
                 }
             }
 
-            // Update Debris Physics
             brokenDebris.forEach(debris => {
                 debris.position.x += debris.userData.vx;
                 debris.position.y += debris.userData.vy;
@@ -800,7 +951,6 @@
                 }
             });
 
-            // Camera Logic
             if (gameState !== 'menu') {
                 if (!isSpectating) {
                     const camDist = 20;
