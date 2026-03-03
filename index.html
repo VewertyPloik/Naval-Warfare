@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <title>Naval Warfare</title>
     <style>
+        :root {
+            --primary: #2266ff;
+            --primary-hover: #4488ff;
+            --accent: #ff4444;
+            --dark-glass: rgba(10, 15, 30, 0.85);
+            --light-glass: rgba(255, 255, 255, 0.1);
+        }
+
         body {
             margin: 0;
             overflow: hidden;
@@ -12,6 +20,7 @@
             touch-action: none; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
+            color: white;
         }
         #game-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; }
         
@@ -19,85 +28,146 @@
         #home-screen {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: rgba(0, 15, 40, 0.4); z-index: 200; backdrop-filter: blur(3px);
+            background: radial-gradient(circle, rgba(0,30,70,0.6) 0%, rgba(0,5,15,0.9) 100%);
+            z-index: 200; backdrop-filter: blur(5px);
         }
         #game-title {
-            color: white; font-size: 50px; text-shadow: 0px 4px 10px rgba(0,0,0,0.8);
-            margin-bottom: 40px; text-align: center; letter-spacing: 2px;
+            font-size: 56px; font-weight: 900; letter-spacing: 4px; text-transform: uppercase;
+            background: linear-gradient(180deg, #ffffff 0%, #88bbff 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0px 4px 15px rgba(34, 102, 255, 0.6));
+            margin-bottom: 50px; text-align: center;
         }
-        #home-buttons {
-            display: flex; align-items: center; gap: 20px;
-        }
-        .home-btn {
-            background: rgba(255, 255, 255, 0.1); border: 3px solid white; color: white;
-            border-radius: 12px; font-weight: bold; cursor: pointer; backdrop-filter: blur(2px);
-            transition: all 0.2s;
-        }
-        .home-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }
-        .home-btn:active { transform: scale(0.95); }
+        #home-buttons { display: flex; align-items: center; gap: 20px; }
         
-        #home-play-btn { font-size: 32px; padding: 15px 40px; background: rgba(34, 102, 255, 0.6); border-color: #66aaff; }
-        .icon-btn { font-size: 24px; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        .home-btn {
+            background: var(--light-glass); border: 1px solid rgba(255,255,255,0.2); 
+            color: white; border-radius: 12px; font-weight: bold; cursor: pointer; 
+            backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .home-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(34, 102, 255, 0.4); border-color: rgba(255,255,255,0.5); }
+        .home-btn:active { transform: translateY(1px); }
+        
+        #home-play-btn { font-size: 32px; padding: 15px 50px; background: rgba(34, 102, 255, 0.75); border: 1px solid #66aaff; letter-spacing: 2px; }
+        .icon-btn { font-size: 20px; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
 
         #home-coin-display {
-            position: absolute; top: 20px; right: 20px;
-            font-size: 24px; font-weight: bold; color: gold; background: rgba(0,0,0,0.7);
-            padding: 8px 20px; border-radius: 8px; border: 2px solid gold;
+            position: absolute; top: 25px; right: 25px;
+            font-size: 22px; font-weight: bold; color: #ffd700; background: var(--dark-glass);
+            padding: 10px 25px; border-radius: 30px; border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px;
         }
+
+        /* --- LOADING SCREEN --- */
+        #loading-screen {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(180deg, #001224 0%, #00050a 100%);
+            z-index: 999; display: none; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .loading-text {
+            margin-top: 40px; font-size: 24px; font-weight: bold; letter-spacing: 6px;
+            color: #88bbff; text-shadow: 0 0 10px rgba(136, 187, 255, 0.5);
+            animation: pulseText 1.5s infinite alternate;
+        }
+        @keyframes pulseText { from { opacity: 0.6; } to { opacity: 1; text-shadow: 0 0 20px rgba(136, 187, 255, 0.9); } }
+        
+        .cannonball-anim { animation: fireArc 1.5s infinite cubic-bezier(0.25, 1, 0.5, 1); }
+        @keyframes fireArc {
+            0% { transform: translate(0, 0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            90% { transform: translate(350px, 30px) scale(0.5); opacity: 1; }
+            100% { transform: translate(360px, 40px) scale(0); opacity: 0; }
+        }
+        .muzzle-flash { animation: flash 1.5s infinite; transform-origin: center; }
+        @keyframes flash { 0%, 15%, 100% { opacity: 0; transform: scale(0.5); } 5% { opacity: 1; transform: scale(1.5); } }
+        .ship-bob { animation: bob 3s infinite ease-in-out; }
+        @keyframes bob { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(5px) rotate(1deg); } }
 
         /* --- IN-GAME UI --- */
         #top-ui {
-            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-            width: 90%; display: flex; justify-content: space-between; z-index: 20;
-            pointer-events: none; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-            display: none;
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            width: 95%; display: flex; justify-content: space-between; z-index: 20;
+            pointer-events: none; display: none;
         }
         .center-ui { display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: auto; }
-        #timer-box { font-size: 28px; font-weight: bold; color: white; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; border: 2px solid white; pointer-events: none; }
+        #timer-box { font-size: 26px; font-weight: 900; background: var(--dark-glass); padding: 8px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.5); letter-spacing: 1px;}
         
-        #scoreboard { background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; color: white; font-size: 16px; border: 2px solid #555; pointer-events: none; }
-        .score-row { display: flex; justify-content: space-between; margin-bottom: 4px; gap: 20px; font-weight: bold; }
+        #scoreboard { background: var(--dark-glass); padding: 15px; border-radius: 12px; font-size: 16px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); min-width: 150px;}
+        .score-row { display: flex; justify-content: space-between; margin-bottom: 6px; gap: 20px; font-weight: bold; }
 
-        /* RADAR / MINIMAP */
+        /* --- FLOATING COIN POPUPS --- */
+        .coin-popup {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 900;
+            color: #44ff44;
+            text-shadow: 0px 3px 6px rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            z-index: 100;
+            pointer-events: none;
+            animation: floatUpFade 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        }
+        .coin-popup.big {
+            font-size: 38px;
+            color: #ffcc00;
+            animation: floatUpFadeBig 1.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+        }
+        @keyframes floatUpFade {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+            20% { transform: translate(-50%, -80%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
+        }
+        @keyframes floatUpFadeBig {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+            20% { transform: translate(-50%, -80%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -200%) scale(1.1); }
+        }
+
+        /* RADAR */
         #minimap-container {
-            position: absolute; top: 10px; right: 10px; z-index: 30;
-            width: 120px; height: 120px; border: 3px solid #66aaff; border-radius: 8px;
-            background: rgba(0, 20, 40, 0.8); display: none; pointer-events: auto; cursor: pointer;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.5); transition: all 0.2s ease-out;
+            position: absolute; top: 15px; right: 15px; z-index: 30;
+            width: 130px; height: 130px; border: 2px solid rgba(102, 170, 255, 0.5); border-radius: 12px;
+            background: rgba(0, 15, 30, 0.85); display: none; pointer-events: auto; cursor: pointer;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.6); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(5px); overflow: hidden;
         }
-        #minimap-canvas { width: 100%; height: 100%; border-radius: 4px; }
-        
-        #minimap-overlay {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.7); z-index: 290; display: none; pointer-events: auto;
-        }
-        #minimap-container.fullscreen {
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 80vmin; height: 80vmin; z-index: 300; border-color: gold; border-width: 5px;
-        }
+        #minimap-canvas { width: 100%; height: 100%; }
+        #minimap-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 290; display: none; pointer-events: auto; backdrop-filter: blur(3px); }
+        #minimap-container.fullscreen { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 75vmin; height: 75vmin; z-index: 300; border-color: var(--primary); border-width: 4px; border-radius: 20px;}
 
-        /* Modals */
+        /* Modals (Modernized & Animated) */
         .modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(20, 20, 20, 0.95); padding: 25px; border-radius: 12px; 
-            color: white; z-index: 250; display: none; min-width: 250px; text-align: center; pointer-events: auto;
+            background: var(--dark-glass); padding: 30px; border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            z-index: 250; display: none; min-width: 280px; text-align: center; pointer-events: auto;
+            backdrop-filter: blur(15px);
         }
-        #mode-modal { border: 3px solid #ff4444; min-width: 300px; }
-        #mode-modal h2 { margin: 0 0 20px 0; color: #ff4444; }
-        #mode-modal .mode-btn { font-size: 20px; padding: 15px; width: 100%; margin-bottom: 15px; }
+        .modal.show { display: block; animation: popup 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popup {
+            from { opacity: 0; transform: translate(-50%, -40%) scale(0.85); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
 
-        #shop-modal { border: 3px solid #ffaa00; min-width: 300px; }
-        #shop-modal h2 { margin: 0 0 15px 0; color: #ffaa00; }
+        .modal h2 { margin: 0 0 25px 0; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; }
+        #mode-modal h2 { color: #ff5555; }
+        #mode-modal .mode-btn { font-size: 18px; padding: 15px; width: 100%; margin-bottom: 15px; border-radius: 10px; }
+
+        #shop-modal h2 { color: #ffcc00; }
+        #manual-modal { max-width: 450px; text-align: left; }
+        #manual-modal h2 { color: #66aaff; text-align: center; }
+        #manual-modal p { font-size: 15px; margin-bottom: 12px; line-height: 1.5; color: #ddd; }
+        #manual-modal .highlight { color: var(--accent); font-weight: bold; }
+
+        .shop-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px 15px; margin-bottom: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .buy-btn { background: #33aa33; border: none; padding: 10px 15px; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(51, 170, 51, 0.3); }
+        .buy-btn:hover:not(:disabled) { background: #44cc44; transform: translateY(-2px); }
+        .buy-btn:disabled { background: #444; color: #777; cursor: not-allowed; box-shadow: none; }
         
-        #manual-modal { border: 3px solid #2266ff; max-width: 400px; text-align: left; }
-        #manual-modal h2 { margin: 0 0 15px 0; color: #66aaff; text-align: center; }
-        #manual-modal p { font-size: 15px; margin-bottom: 10px; line-height: 1.4; }
-        #manual-modal .highlight { color: #ff4444; font-weight: bold; }
-
-        .shop-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 10px; margin-bottom: 10px; border-radius: 8px; }
-        .buy-btn { background: #44cc44; border: none; padding: 8px 12px; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        .buy-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
-        .close-btn { margin-top: 15px; background: #cc4444; border: none; padding: 8px 20px; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; }
+        .close-btn { margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 12px 20px; color: white; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
+        .close-btn:hover { background: rgba(255,255,255,0.2); }
 
         .joystick-zone { position: absolute; bottom: 0; width: 40%; height: 50%; z-index: 10; display: none; }
         #left-zone { left: 0; }
@@ -105,57 +175,79 @@
 
         #shoot-pad {
             position: absolute; bottom: 40px; right: 40px;
-            width: 100px; height: 100px; background-color: rgba(255, 50, 50, 0.5);
-            border: 4px solid #ff3333; border-radius: 50%; box-shadow: 0px 4px 15px rgba(255,0,0,0.5);
+            width: 90px; height: 90px; background: radial-gradient(circle, rgba(255,60,60,0.8) 0%, rgba(200,0,0,0.8) 100%);
+            border: 3px solid #ffaaaa; border-radius: 50%; box-shadow: 0px 8px 25px rgba(255,0,0,0.6);
             z-index: 30; cursor: pointer; pointer-events: auto;
             display: none; justify-content: center; align-items: center; text-align: center;
-            color: white; font-weight: 900; font-size: 16px; transition: background-color 0.2s;
+            font-weight: 900; font-size: 14px; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); letter-spacing: 1px;
         }
-        #shoot-pad.aiming { background-color: rgba(255, 50, 50, 0.9); transform: scale(1.1); }
-        #shoot-pad.reloading { background-color: rgba(100, 100, 100, 0.5); border-color: #777; color: #777; pointer-events: none; }
+        #shoot-pad.aiming { transform: scale(1.15); box-shadow: 0px 12px 35px rgba(255,0,0,0.8); border-color: white; }
+        #shoot-pad.reloading { background: radial-gradient(circle, rgba(100,100,100,0.8) 0%, rgba(50,50,50,0.8) 100%); border-color: #777; color: #aaa; pointer-events: none; box-shadow: none; }
 
-        #game-over {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9); padding: 40px; border-radius: 15px; border: 4px solid gold;
-            text-align: center; color: white; z-index: 100; display: none; pointer-events: auto;
-        }
-        #game-over h1 { margin: 0 0 10px 0; font-size: 40px; color: gold; }
-        #game-over p { font-size: 24px; margin: 0 0 20px 0; }
-        #rematch-btn { background: #2266ff; border: 2px solid white; padding: 12px 24px; color: white; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        #game-over { border: 2px solid rgba(255,215,0,0.5); }
+        #game-over h1 { margin: 0 0 10px 0; font-size: 46px; text-transform: uppercase; }
+        #game-over p { font-size: 22px; margin: 0 0 25px 0; color: #ddd; }
+        #rematch-btn { background: var(--primary); border: none; padding: 15px 30px; color: white; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 15px rgba(34, 102, 255, 0.4); }
+        #rematch-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         
-        #spec-text { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: white; font-size: 20px; font-weight: bold; display: none; z-index: 20; text-shadow: 2px 2px 4px #000; pointer-events: none; }
+        #spec-text { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #ffcc00; font-size: 18px; font-weight: bold; display: none; z-index: 20; text-shadow: 0px 2px 10px rgba(0,0,0,0.9); pointer-events: none; letter-spacing: 1px; background: var(--dark-glass); padding: 10px 20px; border-radius: 30px;}
 
-        #watermark {
-            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-            color: white; opacity: 0.3; font-size: 14px; font-weight: bold; z-index: 210; pointer-events: none;
-            letter-spacing: 1px; text-shadow: 1px 1px 2px black;
-        }
-
-        .confetti { position: absolute; width: 10px; height: 10px; background-color: #f00; z-index: 90; top: -10px; animation: fall linear forwards; }
-        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+        .confetti { position: absolute; width: 10px; height: 10px; z-index: 90; top: -10px; animation: fall linear forwards; border-radius: 2px;}
+        @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
 </head>
 <body>
 
+    <div id="loading-screen">
+        <svg viewBox="0 0 600 300" width="80%" max-width="600px" height="auto">
+            <g class="ship-bob">
+                <path d="M 120 220 Q 250 240 450 220" stroke="rgba(255,255,255,0.2)" stroke-width="4" fill="none" stroke-dasharray="10 10"/>
+                <path d="M 150 220 L 170 160 L 400 160 L 450 220 Z" fill="#2a3b4c" stroke="#1c2833" stroke-width="3"/>
+                <rect x="220" y="110" width="100" height="50" fill="#34495e" rx="5"/>
+                <rect x="240" y="120" width="20" height="20" fill="#66bbff" opacity="0.8"/>
+                <rect x="280" y="120" width="20" height="20" fill="#66bbff" opacity="0.8"/>
+                <line x1="270" y1="110" x2="270" y2="60" stroke="#7f8c8d" stroke-width="4"/>
+                <line x1="250" y1="70" x2="290" y2="60" stroke="#7f8c8d" stroke-width="3"/>
+                <path d="M 360 160 L 380 160 L 375 140 L 365 140 Z" fill="#1c2833"/>
+                <rect x="365" y="130" width="50" height="12" fill="#7f8c8d" transform="rotate(-20 365 136)" rx="3"/>
+                <circle cx="415" cy="115" r="25" fill="#ff7700" class="muzzle-flash" filter="blur(2px)"/>
+                <circle cx="415" cy="115" r="15" fill="#ffffff" class="muzzle-flash"/>
+            </g>
+            <g class="cannonball-anim">
+                <circle cx="415" cy="115" r="6" fill="#ffaa00" />
+                <path d="M 405 115 L 375 125" stroke="#ff4400" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+            </g>
+            <path d="M 0 210 Q 150 190 300 210 T 600 210 L 600 300 L 0 300 Z" fill="#002b5e" opacity="0.9"/>
+            <path d="M 0 230 Q 150 250 300 230 T 600 230 L 600 300 L 0 300 Z" fill="#001530"/>
+        </svg>
+        <div class="loading-text">PREPARING BATTLE...</div>
+    </div>
+
     <div id="home-screen">
-        <div id="home-coin-display">🪙 <span id="menu-coins">0</span></div>
+        <div id="home-coin-display">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffd700"><circle cx="12" cy="12" r="10" stroke="#b8860b" stroke-width="2"/><text x="12" y="16" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">C</text></svg>
+            <span id="menu-coins">0</span>
+        </div>
         <h1 id="game-title">NAVAL WARFARE</h1>
         <div id="home-buttons">
-            <button id="home-shop-btn" class="home-btn icon-btn">⬆️</button>
+            <button id="home-shop-btn" class="home-btn icon-btn" title="Shop">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            </button>
             <button id="home-play-btn" class="home-btn">PLAY</button>
-            <button id="home-manual-btn" class="home-btn icon-btn">❓</button>
+            <button id="home-manual-btn" class="home-btn icon-btn" title="How to Play">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
+            </button>
         </div>
     </div>
-    <div id="watermark">Game Made By Vewerty Ploik</div>
 
     <div id="top-ui">
         <div id="scoreboard"></div>
         <div class="center-ui">
             <div id="timer-box">2:00</div>
         </div>
-        <div style="width: 120px;"></div>
+        <div style="width: 150px;"></div>
     </div>
 
     <div id="minimap-overlay"></div>
@@ -167,35 +259,34 @@
         <h2>SELECT GAMEMODE</h2>
         <button class="home-btn mode-btn" id="btn-ffa">FREE FOR ALL</button>
         <button class="home-btn mode-btn" id="btn-teams">3v3 TEAMS</button>
-        <button id="close-mode" class="close-btn">Cancel</button>
+        <button id="close-mode" class="close-btn">CANCEL</button>
     </div>
 
     <div id="shop-modal" class="modal">
         <h2>DOCKYARD SHOP</h2>
         <div class="shop-item">
-            <span style="text-align: left;">Speed <br><small id="speed-lvl-txt" style="color:#aaa;">Lv.0</small></span>
-            <button class="buy-btn" id="buy-speed-btn">50 🪙</button>
+            <span style="text-align: left;">Engine Speed <br><small id="speed-lvl-txt" style="color:#aaa;">Lv.0</small></span>
+            <button class="buy-btn" id="buy-speed-btn">50 C</button>
         </div>
         <div class="shop-item">
-            <span style="text-align: left;">Reload <br><small id="reload-lvl-txt" style="color:#aaa;">Lv.0</small></span>
-            <button class="buy-btn" id="buy-reload-btn">50 🪙</button>
+            <span style="text-align: left;">Reload Speed <br><small id="reload-lvl-txt" style="color:#aaa;">Lv.0</small></span>
+            <button class="buy-btn" id="buy-reload-btn">50 C</button>
         </div>
         <div class="shop-item">
-            <span style="text-align: left;">Radar <br><small id="radar-status-txt" style="color:#aaa;">Not Owned</small></span>
-            <button class="buy-btn" id="buy-radar-btn">300 🪙</button>
+            <span style="text-align: left;">Tactical Radar <br><small id="radar-status-txt" style="color:#aaa;">Not Owned</small></span>
+            <button class="buy-btn" id="buy-radar-btn">300 C</button>
         </div>
-        <button id="close-shop" class="close-btn">Done</button>
+        <button id="close-shop" class="close-btn">DONE</button>
     </div>
 
     <div id="manual-modal" class="modal">
         <h2>HOW TO PLAY</h2>
-        <p>🕹️ <b>Controls:</b> Use the left joystick to drive your boat. Drag anywhere on the right side of the screen to look around.</p>
-        <p>🎯 <b>Shooting:</b> Hold the red button to aim your cannon. Release the button to fire at the red target circle.</p>
-        <p>🪙 <b>Upgrades:</b> You get +5 Coins for every piece you blast off an enemy ship. Spend them in the shop to upgrade stats or buy a Radar.</p>
-        <p>📡 <b>Radar:</b> Once purchased, a minimap appears in the top right. <b>Blue = Allies, Red = Enemies.</b> Tap the minimap to expand it fullscreen!</p>
-        <p>⚔️ <b>Modes:</b> Play Free-For-All (FFA) or join a random squad in 3v3 TEAMS. In Teams, friendly fire is disabled!</p>
-        <p>💥 <span class="highlight">PRO TIP:</span> If you manage to hit an enemy boat's <b>CANNON</b> directly, their entire ship will instantly explode and be eliminated!</p>
-        <button id="close-manual" class="close-btn">Got it!</button>
+        <p><b>Controls:</b> Use the left joystick to drive your boat. Drag anywhere on the right side of the screen to look around.</p>
+        <p><b>Shooting:</b> Hold the red button to aim your cannon. Release the button to fire at the red target.</p>
+        <p><b>Upgrades:</b> You get +5 Coins for every piece you blast off an enemy ship, and +10 for a direct hit to the cannon! Spend them in the shop to upgrade stats.</p>
+        <p><b>Radar:</b> Once purchased, a minimap appears. <b>Blue = Allies, Red = Enemies.</b> Tap the minimap to expand it fullscreen.</p>
+        <p><span class="highlight">PRO TIP:</span> If you hit an enemy boat's <b>CANNON</b> directly, their entire ship will instantly explode!</p>
+        <button id="close-manual" class="close-btn">GOT IT</button>
     </div>
     
     <div id="game-container"></div>
@@ -204,14 +295,14 @@
     <div id="shoot-pad">HOLD<br>TO AIM</div>
     <div id="spec-text">SPECTATOR: DRAG TO LOOK, JOYSTICK TO FLY</div>
 
-    <div id="game-over">
+    <div id="game-over" class="modal">
         <h1 id="go-title">MATCH OVER</h1>
         <p id="go-text"></p>
         <button id="rematch-btn">BACK TO MENU</button>
     </div>
 
     <script>
-        // --- 0. SAVE DATA & UPGRADES ---
+        // --- 0. SAVE DATA & UI LOGIC ---
         let coins = parseInt(localStorage.getItem('boatArenaCoins')) || 0;
         let speedLvl = parseInt(localStorage.getItem('boatArenaSpeed')) || 0;
         let reloadLvl = parseInt(localStorage.getItem('boatArenaReload')) || 0;
@@ -233,12 +324,12 @@
             
             document.getElementById('speed-lvl-txt').innerText = `Lv.${speedLvl}`;
             const speedBtn = document.getElementById('buy-speed-btn');
-            speedBtn.innerText = `${getSpeedPrice()} 🪙`;
+            speedBtn.innerText = `${getSpeedPrice()} C`;
             speedBtn.disabled = coins < getSpeedPrice();
 
             document.getElementById('reload-lvl-txt').innerText = `Lv.${reloadLvl}`;
             const reloadBtn = document.getElementById('buy-reload-btn');
-            reloadBtn.innerText = `${getReloadPrice()} 🪙`;
+            reloadBtn.innerText = `${getReloadPrice()} C`;
             reloadBtn.disabled = coins < getReloadPrice();
 
             const radarBtn = document.getElementById('buy-radar-btn');
@@ -249,44 +340,69 @@
                 radarBtn.disabled = true;
                 radarBtn.style.background = "#555";
             } else {
-                radarBtn.innerText = "300 🪙";
+                radarBtn.innerText = "300 C";
                 radarBtn.disabled = coins < 300;
             }
         }
 
-        // Menus
-        document.getElementById('home-shop-btn').addEventListener('click', () => { document.getElementById('shop-modal').style.display = 'block'; updateShopUI(); });
-        document.getElementById('close-shop').addEventListener('click', () => { document.getElementById('shop-modal').style.display = 'none'; });
-        document.getElementById('home-manual-btn').addEventListener('click', () => { document.getElementById('manual-modal').style.display = 'block'; });
-        document.getElementById('close-manual').addEventListener('click', () => { document.getElementById('manual-modal').style.display = 'none'; });
-        
-        document.getElementById('home-play-btn').addEventListener('click', () => {
-            document.getElementById('mode-modal').style.display = 'block';
-        });
-        document.getElementById('close-mode').addEventListener('click', () => {
-            document.getElementById('mode-modal').style.display = 'none';
-        });
+        // SVG string for the coin popup
+        const coinSvgStr = `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="#ffd700" style="vertical-align: middle; margin-left: 5px; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.5));"><circle cx="12" cy="12" r="10" stroke="#b8860b" stroke-width="2"/><text x="12" y="16" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">C</text></svg>`;
 
-        // Mode Selection
+        function spawnCoinPopup(amount, worldPos) {
+            // Project 3D position to 2D screen space
+            const pos = worldPos.clone();
+            pos.project(camera);
+            const x = (pos.x * .5 + .5) * window.innerWidth;
+            const y = (pos.y * -.5 + .5) * window.innerHeight;
+
+            const el = document.createElement('div');
+            el.className = 'coin-popup' + (amount >= 10 ? ' big' : '');
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.innerHTML = `+${amount}${coinSvgStr}`;
+            document.body.appendChild(el);
+
+            setTimeout(() => { el.remove(); }, 1500);
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('show'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+        document.getElementById('home-shop-btn').addEventListener('click', () => { updateShopUI(); openModal('shop-modal'); });
+        document.getElementById('close-shop').addEventListener('click', () => closeModal('shop-modal'));
+        document.getElementById('home-manual-btn').addEventListener('click', () => openModal('manual-modal'));
+        document.getElementById('close-manual').addEventListener('click', () => closeModal('manual-modal'));
+        document.getElementById('home-play-btn').addEventListener('click', () => openModal('mode-modal'));
+        document.getElementById('close-mode').addEventListener('click', () => closeModal('mode-modal'));
+
         let gameMode = 'ffa';
-        document.getElementById('btn-ffa').addEventListener('click', () => startGame('ffa'));
-        document.getElementById('btn-teams').addEventListener('click', () => startGame('teams'));
-
-        // Shop Purchases
-        document.getElementById('buy-speed-btn').addEventListener('click', () => {
-            if (coins >= getSpeedPrice()) { coins -= getSpeedPrice(); speedLvl++; saveProgress(); }
-        });
-        document.getElementById('buy-reload-btn').addEventListener('click', () => {
-            if (coins >= getReloadPrice()) { coins -= getReloadPrice(); reloadLvl++; saveProgress(); }
-        });
-        document.getElementById('buy-radar-btn').addEventListener('click', () => {
-            if (coins >= 300 && !hasRadar) { coins -= 300; hasRadar = true; saveProgress(); }
-        });
         
-        document.getElementById('rematch-btn').addEventListener('click', () => { location.reload(); });
+        function triggerLoading(callback) {
+            closeModal('mode-modal');
+            closeModal('game-over');
+            document.getElementById('home-screen').style.display = 'none';
+            document.getElementById('loading-screen').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                callback();
+            }, 2000);
+        }
+
+        document.getElementById('btn-ffa').addEventListener('click', () => triggerLoading(() => startGame('ffa')));
+        document.getElementById('btn-teams').addEventListener('click', () => triggerLoading(() => startGame('teams')));
+        document.getElementById('rematch-btn').addEventListener('click', () => {
+            triggerLoading(() => {
+                resetGameScene();
+                document.getElementById('home-screen').style.display = 'flex';
+                updateShopUI();
+            });
+        });
+
+        document.getElementById('buy-speed-btn').addEventListener('click', () => { if (coins >= getSpeedPrice()) { coins -= getSpeedPrice(); speedLvl++; saveProgress(); }});
+        document.getElementById('buy-reload-btn').addEventListener('click', () => { if (coins >= getReloadPrice()) { coins -= getReloadPrice(); reloadLvl++; saveProgress(); }});
+        document.getElementById('buy-radar-btn').addEventListener('click', () => { if (coins >= 300 && !hasRadar) { coins -= 300; hasRadar = true; saveProgress(); }});
         updateShopUI(); 
 
-        // RADAR FULLSCREEN LOGIC
         const minimapContainer = document.getElementById('minimap-container');
         const minimapOverlay = document.getElementById('minimap-overlay');
         function toggleFullscreenRadar() {
@@ -304,8 +420,8 @@
         // --- 1. BASIC SETUP ---
         const container = document.getElementById('game-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x4488ff);
-        scene.fog = new THREE.FogExp2(0x4488ff, 0.012);
+        scene.background = new THREE.Color(0x001e36);
+        scene.fog = new THREE.FogExp2(0x001e36, 0.012);
 
         const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -314,21 +430,20 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.HemisphereLight(0xffffff, 0x002244, 0.8);
+        const ambientLight = new THREE.HemisphereLight(0xffffff, 0x002244, 0.7);
         scene.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xffffee, 1.2); 
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2); 
         dirLight.position.set(100, 150, 50);
         dirLight.castShadow = true;
         scene.add(dirLight);
 
         const oceanGeo = new THREE.PlaneGeometry(1000, 1000);
         oceanGeo.rotateX(-Math.PI / 2);
-        const oceanMat = new THREE.MeshStandardMaterial({ color: 0x001e36, roughness: 0.05, metalness: 0.9, transparent: true, opacity: 0.9 });
+        const oceanMat = new THREE.MeshStandardMaterial({ color: 0x00152b, roughness: 0.1, metalness: 0.8 });
         const ocean = new THREE.Mesh(oceanGeo, oceanMat);
         ocean.receiveShadow = true;
         scene.add(ocean);
 
-        // --- GAME STATE VARIABLES ---
         let gameState = 'menu'; 
         let timeLeft = 120; 
         let isSpectating = false;
@@ -338,30 +453,29 @@
 
         const timerEl = document.getElementById('timer-box');
         const scoreEl = document.getElementById('scoreboard');
-        const goMenu = document.getElementById('game-over');
         const specText = document.getElementById('spec-text');
 
         function updateScoreboard() {
             if (gameMode === 'ffa') {
                 let sorted = [...activeTeams].sort((a, b) => b.score - a.score);
                 let html = '';
-                sorted.forEach(t => { html += `<div class="score-row" style="color:${t.uiColor}"><span>${t.name}</span><span>${t.score} pieces</span></div>`; });
+                sorted.forEach(t => { html += `<div class="score-row" style="color:${t.uiColor}"><span>${t.name}</span><span>${t.score}</span></div>`; });
                 scoreEl.innerHTML = html;
             } else {
                 let yellowAlive = allBoats.filter(b => b.team.alliance === 1 && !b.isEliminated).length;
                 let pinkAlive = allBoats.filter(b => b.team.alliance === 2 && !b.isEliminated).length;
                 scoreEl.innerHTML = `
-                    <div class="score-row" style="color:#ffff66; font-size:18px;"><span>Yellow Team:</span><span>${yellowAlive} Alive</span></div>
-                    <div class="score-row" style="color:#ff99cc; font-size:18px;"><span>Pink Team:</span><span>${pinkAlive} Alive</span></div>
+                    <div class="score-row" style="color:#ffff66; font-size:18px;"><span>Yellow:</span><span>${yellowAlive} Alive</span></div>
+                    <div class="score-row" style="color:#ff99cc; font-size:18px;"><span>Pink:</span><span>${pinkAlive} Alive</span></div>
                 `;
             }
         }
 
-        // --- 2. DESTRUCTIBLE BOATS ---
+        // --- 2. DESTRUCTIBLE BOATS (DETAILED OVERHAUL) ---
         const mats = {
-            dark: new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3 }),
-            metal: new THREE.MeshStandardMaterial({ color: 0x999999, roughness: 0.4, metalness: 0.8 }),
-            glass: new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.1, metalness: 0.9 })
+            dark: new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5 }),
+            metal: new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.3, metalness: 0.9 }),
+            glass: new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.1, metalness: 0.9 })
         };
 
         let allBoats = [];
@@ -384,23 +498,45 @@
                 return mesh;
             };
 
-            const mainMat = new THREE.MeshStandardMaterial({ color: teamData.color, roughness: 0.2, metalness: 0.3 });
+            const mainMat = new THREE.MeshStandardMaterial({ color: teamData.color, roughness: 0.2, metalness: 0.4 });
+            const deckMat = new THREE.MeshStandardMaterial({ color: 0x3a4b5c, roughness: 0.8 }); // Distinct deck color
 
-            addPart(new THREE.CylinderGeometry(1.2, 1.8, 5, 4), mats.dark, 0, 0.5, 0, 2.5).rotation.set(Math.PI/2, Math.PI/4, 0);
-            addPart(new THREE.BoxGeometry(2.0, 0.4, 3.5), mainMat, 0, 1.0, 0.5, 2.0);
-            addPart(new THREE.BoxGeometry(1.2, 1.0, 1.8), mats.glass, 0, 1.6, 0.5, 1.2);
-            addPart(new THREE.BoxGeometry(0.6, 0.8, 4.0), mainMat, -1.6, 0.8, 0.5, 2.0);
-            addPart(new THREE.BoxGeometry(0.6, 0.8, 4.0), mainMat, 1.6, 0.8, 0.5, 2.0);
-            addPart(new THREE.BoxGeometry(3.6, 0.2, 0.8), mainMat, 0, 2.2, 2.2, 1.8); 
-            addPart(new THREE.BoxGeometry(0.2, 1.0, 0.6), mats.dark, -1.5, 1.6, 2.2, 0.8); 
-            addPart(new THREE.BoxGeometry(0.2, 1.0, 0.6), mats.dark, 1.5, 1.6, 2.2, 0.8); 
-
-            addPart(new THREE.CylinderGeometry(0.2, 0.2, 1.5), mats.metal, -0.6, 1.2, 2.8, 0.8).rotation.x = -Math.PI / 4;
-            addPart(new THREE.CylinderGeometry(0.2, 0.2, 1.5), mats.metal, 0.6, 1.2, 2.8, 0.8).rotation.x = -Math.PI / 4;
-            addPart(new THREE.CylinderGeometry(0.6, 0.1, 0.2, 8), mats.metal, 0, 2.4, 0.5, 0.8).rotation.x = Math.PI/6;
-            addPart(new THREE.BoxGeometry(1.2, 0.6, 1.2), mats.dark, 0, 1.3, -1.5, 1.0);
+            // 1. Main Hull Base (Sleeker and deeper)
+            addPart(new THREE.CylinderGeometry(1.4, 2.0, 5.5, 5), mats.dark, 0, 0.4, 0, 2.8).rotation.set(Math.PI/2, Math.PI/5, 0);
             
-            const cannonMesh = addPart(new THREE.CylinderGeometry(0.2, 0.3, 2.5, 8), mats.metal, 0, 1.6, -1.5, 1.5);
+            // 2. Deck & Midsection
+            addPart(new THREE.BoxGeometry(2.4, 0.4, 4.5), mainMat, 0, 0.9, 0.5, 2.5);
+            addPart(new THREE.BoxGeometry(2.2, 0.2, 4.3), deckMat, 0, 1.15, 0.5, 2.2);
+
+            // 3. Cabin / Bridge
+            addPart(new THREE.BoxGeometry(1.4, 1.2, 2.0), mainMat, 0, 1.7, 0.5, 1.5);
+            addPart(new THREE.BoxGeometry(1.5, 0.5, 2.1), mats.glass, 0, 1.9, 0.5, 1.2); // Windows
+
+            // 4. Side Armor Plating
+            addPart(new THREE.BoxGeometry(0.4, 1.0, 4.5), mats.metal, -1.3, 1.2, 0.5, 2.0);
+            addPart(new THREE.BoxGeometry(0.4, 1.0, 4.5), mats.metal, 1.3, 1.2, 0.5, 2.0);
+
+            // 5. Missile Tubes (Sides of cabin)
+            addPart(new THREE.CylinderGeometry(0.15, 0.15, 1.2, 8), mats.metal, -1.0, 1.8, 0.5, 0.5).rotation.x = Math.PI / 2;
+            addPart(new THREE.CylinderGeometry(0.15, 0.15, 1.2, 8), mats.metal, 1.0, 1.8, 0.5, 0.5).rotation.x = Math.PI / 2;
+
+            // 6. Rear Spoiler / Tail Guard
+            addPart(new THREE.BoxGeometry(3.6, 0.3, 1.0), mainMat, 0, 2.4, 2.4, 1.8); 
+            addPart(new THREE.BoxGeometry(0.3, 1.2, 0.8), mats.dark, -1.5, 1.7, 2.4, 0.8); 
+            addPart(new THREE.BoxGeometry(0.3, 1.2, 0.8), mats.dark, 1.5, 1.7, 2.4, 0.8); 
+
+            // 7. Smokestacks (Chunkier)
+            addPart(new THREE.CylinderGeometry(0.25, 0.3, 1.5), mats.dark, -0.6, 1.4, 2.8, 0.8).rotation.x = -Math.PI / 6;
+            addPart(new THREE.CylinderGeometry(0.25, 0.3, 1.5), mats.dark, 0.6, 1.4, 2.8, 0.8).rotation.x = -Math.PI / 6;
+
+            // 8. Radar Dish (Top of Cabin)
+            addPart(new THREE.CylinderGeometry(0.6, 0.6, 0.1, 12), mats.metal, 0, 2.5, 0.5, 0.8).rotation.x = Math.PI/8;
+
+            // 9. Cannon Turret Base
+            addPart(new THREE.CylinderGeometry(0.8, 0.9, 0.8, 8), mats.dark, 0, 1.4, -1.5, 1.0);
+            
+            // 10. The Main Cannon
+            const cannonMesh = addPart(new THREE.CylinderGeometry(0.25, 0.35, 3.0, 8), mats.metal, 0, 1.7, -1.8, 1.5);
             cannonMesh.rotation.x = Math.PI / 2;
             boatData.cannon = cannonMesh;
 
@@ -428,7 +564,7 @@
             if (!boatObj.cannon || !boatObj.cannon.userData.isAttached || boatObj.isEliminated) return;
 
             const ball = new THREE.Mesh(cbGeo, cbMat);
-            const barrelTip = new THREE.Vector3(0, 1.2, 0); 
+            const barrelTip = new THREE.Vector3(0, 1.4, 0); 
             barrelTip.applyMatrix4(boatObj.cannon.matrixWorld);
             ball.position.copy(barrelTip);
 
@@ -451,13 +587,13 @@
         }
 
         function createExplosion(pos) {
-            for(let i=0; i<30; i++) {
+            for(let i=0; i<35; i++) {
                 let p = new THREE.Mesh(expGeo, expMat);
                 p.position.copy(pos);
                 p.position.x += (Math.random() - 0.5) * 2;
                 p.position.y += Math.random() * 2;
                 p.position.z += (Math.random() - 0.5) * 2;
-                p.userData = { vx: (Math.random()-0.5)*1.5, vy: Math.random()*1.5 + 0.5, vz: (Math.random()-0.5)*1.5, life: 1.0 };
+                p.userData = { vx: (Math.random()-0.5)*1.8, vy: Math.random()*1.8 + 0.5, vz: (Math.random()-0.5)*1.8, life: 1.0 };
                 scene.add(p);
                 explosionParticles.push(p);
             }
@@ -496,13 +632,12 @@
                 document.getElementById('go-title').innerText = "ELIMINATED";
                 document.getElementById('go-title').style.color = "#ff4444";
                 document.getElementById('go-text').innerText = "Entering Spectator Mode...";
-                goMenu.style.display = 'block';
-                setTimeout(() => { if(gameState === 'playing') goMenu.style.display = 'none'; }, 3000);
+                openModal('game-over');
+                setTimeout(() => { if(gameState === 'playing') closeModal('game-over'); }, 3000);
             }
 
             updateScoreboard();
 
-            // Win Condition Checks
             if (gameMode === 'ffa') {
                 let aliveBoats = allBoats.filter(b => !b.isEliminated);
                 if (aliveBoats.length === 1 && gameState === 'playing') {
@@ -549,7 +684,7 @@
                 lastTouchY = e.clientY;
             }
 
-            if (isAiming && !isSpectating) {
+            if (isAiming && !isSpectating && playerBoat && !playerBoat.isEliminated) {
                 let sensitivity = 0.12; 
                 let camDir = new THREE.Vector3();
                 camera.getWorldDirection(camDir);
@@ -595,7 +730,7 @@
                 
                 let reloadTime = Math.max(300, 1200 - (reloadLvl * 100));
                 shootPad.classList.add('reloading');
-                shootPad.innerHTML = 'RELOADING';
+                shootPad.innerHTML = 'RELOAD';
                 setTimeout(() => { 
                     shootPad.classList.remove('reloading'); 
                     shootPad.innerHTML = 'HOLD<br>TO AIM'; 
@@ -603,8 +738,50 @@
             }
         });
 
-        // --- 5. GAME LOGIC & INITIALIZATION ---
-        
+        // --- 5. GAME RESET & LOGIC ---
+        function resetGameScene() {
+            gameState = 'menu';
+            clearInterval(timerInterval);
+            
+            allBoats.forEach(boat => {
+                scene.remove(boat.group);
+                boat.parts.forEach(p => scene.remove(p));
+            });
+            allBoats = [];
+            playerBoat = null;
+            
+            cannonballs.forEach(c => scene.remove(c));
+            cannonballs.length = 0;
+            
+            brokenDebris.forEach(d => scene.remove(d));
+            brokenDebris.length = 0;
+            
+            explosionParticles.forEach(p => scene.remove(p));
+            explosionParticles.length = 0;
+
+            document.querySelectorAll('.confetti').forEach(e => e.remove());
+            document.querySelectorAll('.coin-popup').forEach(e => e.remove());
+
+            if (leftJoy) { leftJoy.destroy(); leftJoy = null; }
+            
+            isSpectating = false;
+            camYaw = 0; camPitch = 0.3;
+            moveInput = { forward: 0, turn: 0 };
+            isAiming = false;
+            isDraggingCam = false;
+            targetCircle.visible = false;
+
+            document.getElementById('top-ui').style.display = 'none';
+            document.getElementById('shoot-pad').style.display = 'none';
+            document.getElementById('left-zone').style.display = 'none';
+            document.getElementById('right-drag-zone').style.display = 'none';
+            document.getElementById('minimap-container').style.display = 'none';
+            document.getElementById('minimap-overlay').style.display = 'none';
+            specText.style.display = 'none';
+            shootPad.classList.remove('reloading');
+            shootPad.innerHTML = 'HOLD<br>TO AIM';
+        }
+
         function spawnBoatHelper(teamData) {
             let boat = createDestructibleBoat(teamData);
             if (teamData.isPlayer) {
@@ -618,23 +795,19 @@
 
         function startGame(mode) {
             gameMode = mode;
-            document.getElementById('mode-modal').style.display = 'none';
-            document.getElementById('home-screen').style.display = 'none';
             document.getElementById('top-ui').style.display = 'flex';
             document.getElementById('shoot-pad').style.display = 'flex';
             document.getElementById('left-zone').style.display = 'block';
             document.getElementById('right-drag-zone').style.display = 'block';
             
-            if (hasRadar) {
-                document.getElementById('minimap-container').style.display = 'block';
-            }
+            if (hasRadar) { document.getElementById('minimap-container').style.display = 'block'; }
             
             initBattle();
         }
 
         function initBattle() {
             gameState = 'playing';
-            allBoats = [];
+            timeLeft = 120;
             activeTeams = [];
 
             if (gameMode === 'ffa') {
@@ -662,6 +835,7 @@
             leftJoy.on('move', (evt, data) => { moveInput.forward = data.vector.y; moveInput.turn = data.vector.x; });
             leftJoy.on('end', () => { moveInput.forward = 0; moveInput.turn = 0; });
 
+            timerEl.innerText = "2:00";
             timerInterval = setInterval(() => {
                 if (gameState !== 'playing') return;
                 timeLeft--;
@@ -689,30 +863,32 @@
                 }
             }
 
-            goMenu.style.display = 'block';
             specText.style.display = 'none';
             document.getElementById('minimap-container').style.display = 'none';
             document.getElementById('minimap-overlay').style.display = 'none';
+            document.getElementById('shoot-pad').style.display = 'none';
 
             if (winner) {
                 document.getElementById('go-text').innerText = `${winner.name} won!`;
                 if (winner.isPlayer) {
-                    document.getElementById('go-title').innerText = "VICTORY!";
-                    document.getElementById('go-title').style.color = "#66ff66";
+                    document.getElementById('go-title').innerText = "VICTORY";
+                    document.getElementById('go-title').style.color = "#44ff44";
                     spawnConfetti();
                 } else {
-                    document.getElementById('go-title').innerText = "MATCH OVER";
-                    document.getElementById('go-title').style.color = "#ffaa00";
+                    document.getElementById('go-title').innerText = "DEFEAT";
+                    document.getElementById('go-title').style.color = "#ff4444";
                 }
             } else {
                 document.getElementById('go-title').innerText = "DRAW";
-                document.getElementById('go-text').innerText = "It's a tie!";
+                document.getElementById('go-title').style.color = "#aaaaaa";
+                document.getElementById('go-text').innerText = "Time ran out!";
             }
+            openModal('game-over');
         }
 
         function spawnConfetti() {
             const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
-            for(let i=0; i<150; i++) {
+            for(let i=0; i<100; i++) {
                 let conf = document.createElement('div');
                 conf.className = 'confetti';
                 conf.style.left = Math.random() * 100 + 'vw';
@@ -747,13 +923,11 @@
 
                 ctx.beginPath();
                 ctx.arc(mapX, mapY, 8, 0, Math.PI * 2);
-                
-                // Blue for Allies (including yourself), Red for Enemies
                 let isAlly = (boat.team.alliance === playerBoat.team.alliance);
-                ctx.fillStyle = isAlly ? '#2266ff' : '#ff4444';
+                ctx.fillStyle = isAlly ? '#4488ff' : '#ff4444';
                 
                 ctx.fill();
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 2;
                 ctx.strokeStyle = 'white';
                 ctx.stroke();
             });
@@ -767,17 +941,16 @@
             const time = Date.now() * 0.002;
 
             if (gameState === 'menu') {
-                camera.position.set(Math.sin(time * 0.2) * 40, 15, Math.cos(time * 0.2) * 40);
+                camera.position.set(Math.sin(time * 0.1) * 50, 20, Math.cos(time * 0.1) * 50);
                 camera.lookAt(0, 0, 0);
                 renderer.render(scene, camera);
                 return; 
             }
 
             if (gameState === 'playing') {
-                
                 renderMinimap(); 
 
-                if (!isSpectating && !playerBoat.isEliminated) {
+                if (!isSpectating && playerBoat && !playerBoat.isEliminated) {
                     let accel = 0.01 + (speedLvl * 0.002);
                     playerBoat.speed += moveInput.forward * accel;
                     playerBoat.speed *= 0.95; 
@@ -801,7 +974,6 @@
                     
                     let closestTarget = null, minTargetDist = Infinity;
                     allBoats.forEach(b => {
-                        // Ignore dead boats, yourself, or teammates (same alliance)
                         if (b === ai || b.isEliminated || b.parts.length === 0 || b.team.alliance === ai.team.alliance) return; 
                         let dist = ai.group.position.distanceTo(b.group.position);
                         if(dist < minTargetDist) { minTargetDist = dist; closestTarget = b; }
@@ -870,7 +1042,6 @@
                 let hitSomething = false;
 
                 for (let boat of allBoats) {
-                    // Do not collide with dead boats, own boat, or teammates (same alliance)
                     if (boat.isEliminated || b.userData.owner === boat || b.userData.owner.team.alliance === boat.team.alliance) continue; 
                     if (b.position.distanceTo(boat.group.position) > 12) continue;
 
@@ -896,13 +1067,19 @@
                             brokenDebris.push(part);
                             boat.parts.splice(pIndex, 1); 
 
-                            // Update score ONLY for the team that shot it (relevant for FFA)
                             if (gameMode === 'ffa') {
                                 b.userData.owner.team.score += 1;
                             }
                             
+                            // Check if the player scored the hit
                             if (b.userData.owner.isPlayer) {
-                                coins += 5;
+                                if (isCannonHit) {
+                                    coins += 10;
+                                    spawnCoinPopup(10, tempVec); // Pass 3D world pos
+                                } else {
+                                    coins += 5;
+                                    spawnCoinPopup(5, tempVec);
+                                }
                                 saveProgress();
                             }
                             updateScoreboard();
@@ -952,7 +1129,7 @@
             });
 
             if (gameState !== 'menu') {
-                if (!isSpectating) {
+                if (!isSpectating && playerBoat) {
                     const camDist = 20;
                     camera.position.set(
                         playerBoat.group.position.x + Math.sin(camYaw) * Math.cos(camPitch) * camDist,
