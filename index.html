@@ -11,6 +11,7 @@
             --accent: #ff4444;
             --dark-glass: rgba(10, 15, 30, 0.85);
             --light-glass: rgba(255, 255, 255, 0.1);
+            --gem-color: #bb44ff;
         }
 
         body {
@@ -51,13 +52,19 @@
         
         #home-play-btn { font-size: 32px; padding: 15px 50px; background: rgba(34, 102, 255, 0.75); border: 1px solid #66aaff; letter-spacing: 2px; }
         .icon-btn { font-size: 20px; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        #home-yt-btn svg { fill: #ff0000; transition: fill 0.3s; }
+        #home-yt-btn:hover svg { fill: #ff4444; }
 
-        #home-coin-display {
-            position: absolute; top: 25px; right: 25px;
-            font-size: 22px; font-weight: bold; color: #ffd700; background: var(--dark-glass);
-            padding: 10px 25px; border-radius: 30px; border: 1px solid rgba(255, 215, 0, 0.3);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px;
+        #top-right-currencies {
+            position: absolute; top: 25px; right: 25px; display: flex; flex-direction: column; gap: 10px;
         }
+        .currency-display {
+            font-size: 22px; font-weight: bold; background: var(--dark-glass);
+            padding: 10px 25px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            display: flex; align-items: center; gap: 10px; justify-content: flex-end;
+        }
+        #home-coin-display { color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.3); }
+        #home-gem-display { color: var(--gem-color); border: 1px solid rgba(187, 68, 255, 0.3); }
 
         /* --- LOADING SCREEN --- */
         #loading-screen {
@@ -94,36 +101,18 @@
         #timer-box { font-size: 26px; font-weight: 900; background: var(--dark-glass); padding: 8px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.5); letter-spacing: 1px;}
         
         #scoreboard { background: var(--dark-glass); padding: 15px; border-radius: 12px; font-size: 16px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); min-width: 150px;}
-        .score-row { display: flex; justify-content: space-between; margin-bottom: 6px; gap: 20px; font-weight: bold; }
+        .score-row { display: flex; justify-content: space-between; margin-bottom: 6px; gap: 20px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
 
-        /* --- FLOATING COIN POPUPS --- */
+        /* --- FLOATING POPUPS --- */
         .coin-popup {
-            position: absolute;
-            font-size: 24px;
-            font-weight: 900;
-            color: #44ff44;
-            text-shadow: 0px 3px 6px rgba(0,0,0,0.9);
-            display: flex;
-            align-items: center;
-            z-index: 100;
-            pointer-events: none;
-            animation: floatUpFade 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            position: absolute; font-size: 24px; font-weight: 900; color: #44ff44;
+            text-shadow: 0px 3px 6px rgba(0,0,0,0.9); display: flex; align-items: center; gap: 5px;
+            z-index: 100; pointer-events: none; animation: floatUpFade 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
         }
-        .coin-popup.big {
-            font-size: 38px;
-            color: #ffcc00;
-            animation: floatUpFadeBig 1.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
-        }
-        @keyframes floatUpFade {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
-            20% { transform: translate(-50%, -80%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
-        }
-        @keyframes floatUpFadeBig {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
-            20% { transform: translate(-50%, -80%) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -200%) scale(1.1); }
-        }
+        .coin-popup.big { font-size: 38px; color: #ffcc00; animation: floatUpFadeBig 1.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+        .coin-popup.gem { font-size: 34px; color: var(--gem-color); animation: floatUpFadeBig 2s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+        @keyframes floatUpFade { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 20% { transform: translate(-50%, -80%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -150%) scale(1); } }
+        @keyframes floatUpFadeBig { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 20% { transform: translate(-50%, -80%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -200%) scale(1.1); } }
 
         /* RADAR */
         #minimap-container {
@@ -146,28 +135,82 @@
             backdrop-filter: blur(15px);
         }
         .modal.show { display: block; animation: popup 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes popup {
-            from { opacity: 0; transform: translate(-50%, -40%) scale(0.85); }
-            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
+        #confirm-modal { z-index: 350; } /* Ensure it shows above shop */
+        @keyframes popup { from { opacity: 0; transform: translate(-50%, -40%) scale(0.85); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 
         .modal h2 { margin: 0 0 25px 0; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; }
         #mode-modal h2 { color: #ff5555; }
         #mode-modal .mode-btn { font-size: 18px; padding: 15px; width: 100%; margin-bottom: 15px; border-radius: 10px; }
+        
+        .close-x {
+            position: absolute; top: 15px; right: 20px; background: none; border: none; color: #fff;
+            font-size: 32px; font-weight: bold; cursor: pointer; opacity: 0.6; transition: 0.2s;
+        }
+        .close-x:hover { opacity: 1; transform: scale(1.1); color: #ff4444; }
 
-        #shop-modal h2 { color: #ffcc00; }
-        #manual-modal { max-width: 450px; text-align: left; }
-        #manual-modal h2 { color: #66aaff; text-align: center; }
-        #manual-modal p { font-size: 15px; margin-bottom: 12px; line-height: 1.5; color: #ddd; }
-        #manual-modal .highlight { color: var(--accent); font-weight: bold; }
+        /* --- DOCKYARD SHOP --- */
+        #shop-modal { padding: 20px; width: 85vw; max-width: 600px; height: 75vh; max-height: 550px; display: none; flex-direction: column; }
+        #shop-modal.show { display: flex; }
+        #shop-modal h2 { color: #ffcc00; margin-bottom: 15px; }
 
+        .shop-tabs { display: flex; border-bottom: 2px solid rgba(255,255,255,0.1); margin-bottom: 15px; overflow-x: auto;}
+        .tab-btn {
+            flex: 1; background: none; border: none; color: #888; font-size: 15px; font-weight: bold;
+            padding: 10px 5px; cursor: pointer; transition: 0.3s; letter-spacing: 1px; min-width: 100px;
+        }
+        .tab-btn.active { color: #ffcc00; border-bottom: 3px solid #ffcc00; }
+        .tab-btn:hover:not(.active) { color: #fff; }
+
+        .tab-content { display: none; flex: 1; flex-direction: column; overflow-y: auto; }
+        .tab-content.active { display: flex; }
+
+        /* Paint Tab */
+        #tab-paint { flex-direction: column; align-items: center; justify-content: flex-start; }
+        #shop-3d-container { 
+            width: 100%; height: 220px; background: radial-gradient(circle, rgba(34,102,255,0.2) 0%, rgba(0,0,0,0.5) 100%);
+            border-radius: 15px; border: 1px solid rgba(136,187,255,0.3); margin-bottom: 15px;
+            cursor: grab; overflow: hidden; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); flex-shrink: 0;
+        }
+        #shop-3d-container:active { cursor: grabbing; }
+        #shop-canvas { width: 100%; height: 100%; display: block; }
+        
+        #color-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; padding: 5px;
+        }
+        .color-swatch-btn {
+            aspect-ratio: 1; border-radius: 12px; border: 3px solid rgba(255,255,255,0.1); cursor: pointer;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .color-swatch-btn:hover { transform: scale(1.05); }
+        .color-swatch-btn.equipped { border-color: #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.6); }
+        .color-swatch-btn.locked { opacity: 0.6; filter: grayscale(0.5); }
+        .color-swatch-btn.locked:hover { opacity: 0.9; filter: grayscale(0.2); }
+        .swatch-cost {
+            position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7);
+            font-size: 12px; font-weight: bold; padding: 3px 0; color: white; display: flex; justify-content: center; align-items: center; gap: 3px;
+        }
+
+        /* Upgrades & Gems Tab */
         .shop-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px 15px; margin-bottom: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
         .buy-btn { background: #33aa33; border: none; padding: 10px 15px; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(51, 170, 51, 0.3); }
         .buy-btn:hover:not(:disabled) { background: #44cc44; transform: translateY(-2px); }
         .buy-btn:disabled { background: #444; color: #777; cursor: not-allowed; box-shadow: none; }
-        
+        .gem-buy-btn { background: #9933cc; box-shadow: 0 4px 10px rgba(153, 51, 204, 0.3); display: flex; align-items: center; gap: 5px;}
+        .gem-buy-btn:hover:not(:disabled) { background: #bb44ff; }
+
+        /* Manual & Generic Modals */
+        #manual-modal { max-width: 450px; text-align: left; }
+        #manual-modal h2 { color: #66aaff; text-align: center; }
+        #manual-modal p { font-size: 15px; margin-bottom: 12px; line-height: 1.5; color: #ddd; }
+        #manual-modal .highlight { color: var(--accent); font-weight: bold; }
+        .gem-text { color: var(--gem-color); font-weight: bold; }
         .close-btn { margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 12px 20px; color: white; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
         .close-btn:hover { background: rgba(255,255,255,0.2); }
+
+        /* Settings Modal specific */
+        #settings-modal { max-width: 400px; }
+        .diff-btn:hover { background: rgba(255,255,255,0.2); }
 
         .joystick-zone { position: absolute; bottom: 0; width: 40%; height: 50%; z-index: 10; display: none; }
         #left-zone { left: 0; }
@@ -191,6 +234,13 @@
         #rematch-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         
         #spec-text { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #ffcc00; font-size: 18px; font-weight: bold; display: none; z-index: 20; text-shadow: 0px 2px 10px rgba(0,0,0,0.9); pointer-events: none; letter-spacing: 1px; background: var(--dark-glass); padding: 10px 20px; border-radius: 30px;}
+
+        /* Spectator Back to Menu Button */
+        #leave-spec-btn {
+            position: absolute; bottom: 25px; right: 25px; z-index: 50; display: none;
+            padding: 12px 25px; font-size: 16px; background: rgba(255, 68, 68, 0.8); border-color: #ffaaaa; box-shadow: 0 4px 15px rgba(255,0,0,0.4);
+        }
+        #leave-spec-btn:hover { background: rgba(255, 68, 68, 1); box-shadow: 0 6px 20px rgba(255,0,0,0.6); transform: translateY(-2px); }
 
         .confetti { position: absolute; width: 10px; height: 10px; z-index: 90; top: -10px; animation: fall linear forwards; border-radius: 2px;}
         @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
@@ -226,18 +276,31 @@
     </div>
 
     <div id="home-screen">
-        <div id="home-coin-display">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffd700"><circle cx="12" cy="12" r="10" stroke="#b8860b" stroke-width="2"/><text x="12" y="16" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">C</text></svg>
-            <span id="menu-coins">0</span>
+        <div id="top-right-currencies">
+            <div id="home-coin-display" class="currency-display">
+                <span id="menu-coins">0</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffd700"><circle cx="12" cy="12" r="10" stroke="#b8860b" stroke-width="2"/><text x="12" y="16" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">C</text></svg>
+            </div>
+            <div id="home-gem-display" class="currency-display">
+                <span id="menu-gems">0</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#bb44ff"><path d="M12 2L2 12l10 10 10-10L12 2z" stroke="#6600cc" stroke-width="2"/></svg>
+            </div>
         </div>
+
         <h1 id="game-title">NAVAL WARFARE</h1>
         <div id="home-buttons">
+            <button id="home-yt-btn" class="home-btn icon-btn" title="YouTube">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#fff"/></svg>
+            </button>
             <button id="home-shop-btn" class="home-btn icon-btn" title="Shop">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
             </button>
             <button id="home-play-btn" class="home-btn">PLAY</button>
             <button id="home-manual-btn" class="home-btn icon-btn" title="How to Play">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg>
+            </button>
+            <button id="home-settings-btn" class="home-btn icon-btn" title="Settings">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             </button>
         </div>
     </div>
@@ -262,29 +325,95 @@
         <button id="close-mode" class="close-btn">CANCEL</button>
     </div>
 
+    <div id="youtube-modal" class="modal">
+        <button id="close-yt-x" class="close-x">&times;</button>
+        <h2 style="color: #ff0000; margin-bottom: 15px;">YOUTUBE</h2>
+        <p style="font-size: 18px; margin-bottom: 10px; color: #ddd;">Vewerty Ploik YouTube Channel:</p>
+        <a href="https://www.youtube.com/@VewertyPloik" target="_blank" style="display: inline-block; padding: 10px; color: #66aaff; font-size: 20px; font-weight: bold; text-decoration: none; transition: 0.2s;">YouTube.com</a>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <button id="close-settings-x" class="close-x">&times;</button>
+        <h2 style="margin-bottom: 25px;">SETTINGS</h2>
+        
+        <div class="shop-item" style="margin-bottom: 25px;">
+            <span style="font-size: 18px;">Show Confetti</span>
+            <button id="toggle-confetti" class="buy-btn" style="width: 80px; font-size: 16px;">ON</button>
+        </div>
+        
+        <div style="text-align: left; margin-bottom: 10px; font-size: 18px; color: #ddd;">Enemy Accuracy</div>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button class="home-btn mode-btn diff-btn" data-diff="easy" style="flex: 1; padding: 12px 0; font-size: 14px; margin: 0;">EASY</button>
+            <button class="home-btn mode-btn diff-btn" data-diff="normal" style="flex: 1; padding: 12px 0; font-size: 14px; margin: 0;">NORMAL</button>
+            <button class="home-btn mode-btn diff-btn" data-diff="hard" style="flex: 1; padding: 12px 0; font-size: 14px; margin: 0;">HARD</button>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal">
+        <h2 style="color: #ffaa00;">CONFIRM PURCHASE</h2>
+        <p id="confirm-msg" style="font-size: 18px; margin-bottom: 25px;"></p>
+        <div style="display:flex; gap:15px;">
+            <button id="confirm-yes" class="buy-btn" style="flex:1; padding:12px;">YES</button>
+            <button id="confirm-no" class="close-btn" style="flex:1; margin-top:0; padding:12px;">CANCEL</button>
+        </div>
+    </div>
+
     <div id="shop-modal" class="modal">
-        <h2>DOCKYARD SHOP</h2>
-        <div class="shop-item">
-            <span style="text-align: left;">Engine Speed <br><small id="speed-lvl-txt" style="color:#aaa;">Lv.0</small></span>
-            <button class="buy-btn" id="buy-speed-btn">50 C</button>
+        <button id="close-shop-x" class="close-x">&times;</button>
+        <h2>DOCKYARD</h2>
+        
+        <div class="shop-tabs">
+            <button class="tab-btn active" data-target="tab-paint">PAINT</button>
+            <button class="tab-btn" data-target="tab-upgrades">UPGRADES</button>
+            <button class="tab-btn" data-target="tab-gems">GEMS</button>
         </div>
-        <div class="shop-item">
-            <span style="text-align: left;">Reload Speed <br><small id="reload-lvl-txt" style="color:#aaa;">Lv.0</small></span>
-            <button class="buy-btn" id="buy-reload-btn">50 C</button>
+
+        <div id="tab-paint" class="tab-content active">
+            <div id="shop-3d-container">
+                <canvas id="shop-canvas"></canvas>
+            </div>
+            <div id="color-grid">
+                </div>
         </div>
-        <div class="shop-item">
-            <span style="text-align: left;">Tactical Radar <br><small id="radar-status-txt" style="color:#aaa;">Not Owned</small></span>
-            <button class="buy-btn" id="buy-radar-btn">300 C</button>
+
+        <div id="tab-upgrades" class="tab-content">
+            <div class="shop-item">
+                <span style="text-align: left;">Engine Speed <br><small id="speed-lvl-txt" style="color:#aaa;">Lv.0</small></span>
+                <button class="buy-btn" id="buy-speed-btn">50 C</button>
+            </div>
+            <div class="shop-item">
+                <span style="text-align: left;">Reload Speed <br><small id="reload-lvl-txt" style="color:#aaa;">Lv.0</small></span>
+                <button class="buy-btn" id="buy-reload-btn">50 C</button>
+            </div>
+            <div class="shop-item">
+                <span style="text-align: left;">Tactical Radar <br><small id="radar-status-txt" style="color:#aaa;">Not Owned</small></span>
+                <button class="buy-btn" id="buy-radar-btn">300 C</button>
+            </div>
         </div>
-        <button id="close-shop" class="close-btn">DONE</button>
+
+        <div id="tab-gems" class="tab-content">
+            <div class="shop-item">
+                <span style="text-align: left;">Small Coin Purse <br><small style="color:#aaa;">+100 Coins</small></span>
+                <button class="buy-btn gem-buy-btn" id="buy-coins-1">1 <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg></button>
+            </div>
+            <div class="shop-item">
+                <span style="text-align: left;">Medium Coin Chest <br><small style="color:#aaa;">+250 Coins</small></span>
+                <button class="buy-btn gem-buy-btn" id="buy-coins-2">3 <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg></button>
+            </div>
+            <div class="shop-item">
+                <span style="text-align: left;">Huge Coin Safe <br><small style="color:#aaa;">+500 Coins</small></span>
+                <button class="buy-btn gem-buy-btn" id="buy-coins-3">5 <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg></button>
+            </div>
+        </div>
     </div>
 
     <div id="manual-modal" class="modal">
         <h2>HOW TO PLAY</h2>
         <p><b>Controls:</b> Use the left joystick to drive your boat. Drag anywhere on the right side of the screen to look around.</p>
-        <p><b>Shooting:</b> Hold the red button to aim your cannon. Release the button to fire at the red target.</p>
-        <p><b>Upgrades:</b> You get +5 Coins for every piece you blast off an enemy ship, and +10 for a direct hit to the cannon! Spend them in the shop to upgrade stats.</p>
-        <p><b>Radar:</b> Once purchased, a minimap appears. <b>Blue = Allies, Red = Enemies.</b> Tap the minimap to expand it fullscreen.</p>
+        <p><b>Shooting:</b> Hold the red button to aim your cannon. Release to fire at the red target.</p>
+        <p><b>Upgrades:</b> Get +5 Coins for every piece you blast off an enemy ship, and +10 for a direct cannon hit! Spend them on stats.</p>
+        <p><b class="gem-text">Purple Gems:</b> There's a 50% chance a rare Purple Gem spawns floating out in the ocean. Drive over it to collect it! Use them in the shop to unlock cool colors or buy coins.</p>
+        <p><b>Radar:</b> Once purchased, a minimap appears. <b>Blue = Allies, Red = Enemies, Purple = Gem.</b> Tap the minimap to expand it fullscreen.</p>
         <p><span class="highlight">PRO TIP:</span> If you hit an enemy boat's <b>CANNON</b> directly, their entire ship will instantly explode!</p>
         <button id="close-manual" class="close-btn">GOT IT</button>
     </div>
@@ -293,7 +422,9 @@
     <div id="right-drag-zone"></div>
     <div id="left-zone" class="joystick-zone"></div>
     <div id="shoot-pad">HOLD<br>TO AIM</div>
+    
     <div id="spec-text">SPECTATOR: DRAG TO LOOK, JOYSTICK TO FLY</div>
+    <button id="leave-spec-btn" class="home-btn">BACK TO MENU</button>
 
     <div id="game-over" class="modal">
         <h1 id="go-title">MATCH OVER</h1>
@@ -302,25 +433,184 @@
     </div>
 
     <script>
-        // --- 0. SAVE DATA & UI LOGIC ---
+        // --- 0. SAVE DATA, SETTINGS & UI LOGIC ---
         let coins = parseInt(localStorage.getItem('boatArenaCoins')) || 0;
+        let gems = parseInt(localStorage.getItem('boatArenaGems')) || 0;
         let speedLvl = parseInt(localStorage.getItem('boatArenaSpeed')) || 0;
         let reloadLvl = parseInt(localStorage.getItem('boatArenaReload')) || 0;
         let hasRadar = localStorage.getItem('boatArenaRadar') === 'true';
+        
+        // Settings State
+        let settingsConfetti = localStorage.getItem('boatArenaConfetti') !== 'false'; // Defaults to true
+        let settingsAccuracy = localStorage.getItem('boatArenaAccuracy') || 'normal';
+
+        let unlockedColors = [];
+        try { unlockedColors = JSON.parse(localStorage.getItem('boatArenaColors')) || ['#2266ff']; } 
+        catch(e) { unlockedColors = ['#2266ff']; }
+        
+        let playerEquippedColor = localStorage.getItem('boatArenaEquippedColor');
+        if(!playerEquippedColor) {
+            let oldColor = localStorage.getItem('boatArenaColor');
+            playerEquippedColor = oldColor || '#2266ff';
+            if(!unlockedColors.includes(playerEquippedColor)) unlockedColors.push(playerEquippedColor);
+        }
+
+        const colorShopItems = [
+            { hex: '#2266ff', cost: 0, name: 'Blue' },
+            { hex: '#ff8800', cost: 1, name: 'Orange' },
+            { hex: '#cccccc', cost: 1, name: 'Light Gray' },
+            { hex: '#ffffff', cost: 2, name: 'White' },
+            { hex: '#222222', cost: 2, name: 'Black' },
+            { hex: '#88ff88', cost: 3, name: 'Light Green' },
+            { hex: '#ff88cc', cost: 3, name: 'Pink' },
+            { hex: '#44ffff', cost: 3, name: 'Aqua' }
+        ];
 
         function saveProgress() {
             localStorage.setItem('boatArenaCoins', coins);
+            localStorage.setItem('boatArenaGems', gems);
             localStorage.setItem('boatArenaSpeed', speedLvl);
             localStorage.setItem('boatArenaReload', reloadLvl);
             localStorage.setItem('boatArenaRadar', hasRadar);
+            localStorage.setItem('boatArenaColors', JSON.stringify(unlockedColors));
+            localStorage.setItem('boatArenaEquippedColor', playerEquippedColor);
             updateShopUI();
         }
 
+        function saveSettings() {
+            localStorage.setItem('boatArenaConfetti', settingsConfetti);
+            localStorage.setItem('boatArenaAccuracy', settingsAccuracy);
+        }
+
+        // --- UI & MODAL SYSTEM ---
+        let isShopOpen = false;
+        function openModal(id) { 
+            document.getElementById(id).classList.add('show'); 
+            if(id === 'shop-modal') {
+                isShopOpen = true;
+                setTimeout(() => {
+                    if (document.getElementById('tab-paint').classList.contains('active')) {
+                        const rect = document.getElementById('shop-3d-container').getBoundingClientRect();
+                        shopRenderer.setSize(rect.width, rect.height);
+                        shopCamera.aspect = rect.width / rect.height;
+                        shopCamera.updateProjectionMatrix();
+                    }
+                }, 50);
+            }
+        }
+        function closeModal(id) { 
+            document.getElementById(id).classList.remove('show'); 
+            if(id === 'shop-modal') isShopOpen = false;
+        }
+
+        // Modals mapping
+        document.getElementById('home-shop-btn').addEventListener('click', () => { updateShopUI(); openModal('shop-modal'); });
+        document.getElementById('close-shop-x').addEventListener('click', () => closeModal('shop-modal'));
+        
+        document.getElementById('home-manual-btn').addEventListener('click', () => openModal('manual-modal'));
+        document.getElementById('close-manual').addEventListener('click', () => closeModal('manual-modal'));
+        
+        document.getElementById('home-play-btn').addEventListener('click', () => openModal('mode-modal'));
+        document.getElementById('close-mode').addEventListener('click', () => closeModal('mode-modal'));
+
+        document.getElementById('home-yt-btn').addEventListener('click', () => openModal('youtube-modal'));
+        document.getElementById('close-yt-x').addEventListener('click', () => closeModal('youtube-modal'));
+
+        document.getElementById('home-settings-btn').addEventListener('click', () => openModal('settings-modal'));
+        document.getElementById('close-settings-x').addEventListener('click', () => closeModal('settings-modal'));
+
+        // --- CONFIRMATION SYSTEM ---
+        let pendingConfirmAction = null;
+        function showConfirm(message, action) {
+            document.getElementById('confirm-msg').innerText = message;
+            pendingConfirmAction = action;
+            openModal('confirm-modal');
+        }
+        document.getElementById('confirm-yes').addEventListener('click', () => { if(pendingConfirmAction) pendingConfirmAction(); closeModal('confirm-modal'); pendingConfirmAction = null; });
+        document.getElementById('confirm-no').addEventListener('click', () => { closeModal('confirm-modal'); pendingConfirmAction = null; });
+
+        // --- SETTINGS UI LOGIC ---
+        const toggleConfettiBtn = document.getElementById('toggle-confetti');
+        function updateConfettiUI() {
+            toggleConfettiBtn.innerText = settingsConfetti ? 'ON' : 'OFF';
+            toggleConfettiBtn.style.background = settingsConfetti ? '#33aa33' : '#aa3333';
+        }
+        updateConfettiUI();
+        toggleConfettiBtn.addEventListener('click', () => {
+            settingsConfetti = !settingsConfetti;
+            updateConfettiUI();
+            saveSettings();
+        });
+
+        const diffBtns = document.querySelectorAll('.diff-btn');
+        function updateDiffUI() {
+            diffBtns.forEach(b => {
+                if(b.dataset.diff === settingsAccuracy) {
+                    b.style.borderColor = '#ffcc00'; b.style.color = '#ffcc00'; b.style.boxShadow = '0 0 10px rgba(255,204,0,0.5)';
+                } else {
+                    b.style.borderColor = 'rgba(255,255,255,0.2)'; b.style.color = 'white'; b.style.boxShadow = 'none';
+                }
+            });
+        }
+        updateDiffUI();
+        diffBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                settingsAccuracy = btn.dataset.diff;
+                updateDiffUI();
+                saveSettings();
+            });
+        });
+
+
+        // --- SHOP LOGIC ---
         const getSpeedPrice = () => 50 + (speedLvl * 50);
         const getReloadPrice = () => 50 + (reloadLvl * 50);
 
+        function renderColorShop() {
+            const grid = document.getElementById('color-grid');
+            grid.innerHTML = '';
+            colorShopItems.forEach(item => {
+                const btn = document.createElement('div');
+                btn.className = 'color-swatch-btn';
+                btn.style.backgroundColor = item.hex;
+                
+                const isUnlocked = unlockedColors.includes(item.hex);
+                const isEquipped = playerEquippedColor === item.hex;
+
+                if (isEquipped) btn.classList.add('equipped');
+                if (!isUnlocked) {
+                    btn.classList.add('locked');
+                    btn.innerHTML = `<div class="swatch-cost">${item.cost} <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg></div>`;
+                } else if (isEquipped) {
+                    btn.innerHTML = `<div class="swatch-cost" style="background: rgba(255,204,0,0.8); color: #000;">EQUIPPED</div>`;
+                }
+
+                btn.addEventListener('click', () => {
+                    if (isUnlocked) {
+                        playerEquippedColor = item.hex;
+                        if (shopBoatMainMat) shopBoatMainMat.color.setHex(parseInt(item.hex.replace('#', '0x')));
+                        saveProgress();
+                        renderColorShop();
+                    } else {
+                        if (gems >= item.cost) {
+                            showConfirm(`Unlock the ${item.name} paint for ${item.cost} Gem(s)?`, () => {
+                                gems -= item.cost;
+                                unlockedColors.push(item.hex);
+                                playerEquippedColor = item.hex;
+                                if (shopBoatMainMat) shopBoatMainMat.color.setHex(parseInt(item.hex.replace('#', '0x')));
+                                saveProgress();
+                                renderColorShop();
+                            });
+                        }
+                    }
+                });
+                grid.appendChild(btn);
+            });
+        }
+
         function updateShopUI() {
             document.getElementById('menu-coins').innerText = coins;
+            document.getElementById('menu-gems').innerText = gems;
             
             document.getElementById('speed-lvl-txt').innerText = `Lv.${speedLvl}`;
             const speedBtn = document.getElementById('buy-speed-btn');
@@ -343,13 +633,36 @@
                 radarBtn.innerText = "300 C";
                 radarBtn.disabled = coins < 300;
             }
+
+            document.getElementById('buy-coins-1').disabled = gems < 1;
+            document.getElementById('buy-coins-2').disabled = gems < 3;
+            document.getElementById('buy-coins-3').disabled = gems < 5;
+
+            renderColorShop();
         }
 
-        // SVG string for the coin popup
-        const coinSvgStr = `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="#ffd700" style="vertical-align: middle; margin-left: 5px; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.5));"><circle cx="12" cy="12" r="10" stroke="#b8860b" stroke-width="2"/><text x="12" y="16" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">C</text></svg>`;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.target).classList.add('active');
+                
+                if (btn.dataset.target === 'tab-paint' && shopRenderer) {
+                    setTimeout(() => {
+                        const rect = document.getElementById('shop-3d-container').getBoundingClientRect();
+                        shopRenderer.setSize(rect.width, rect.height);
+                        shopCamera.aspect = rect.width / rect.height;
+                        shopCamera.updateProjectionMatrix();
+                    }, 50);
+                }
+            });
+        });
 
-        function spawnCoinPopup(amount, worldPos) {
-            // Project 3D position to 2D screen space
+        const coinSvgStr = `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="#ffd700" style="vertical-align: middle; margin-left: 5px; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.5));"><circle cx="12" cy="12" r="10" stroke="#b8860b" stroke-width="2"/><text x="12" y="16" font-size="12" font-weight="bold" text-anchor="middle" fill="#111">C</text></svg>`;
+        const gemSvgStr = `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="#bb44ff" style="vertical-align: middle; margin-left: 5px; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.5));"><path d="M12 2L2 12l10 10 10-10L12 2z" stroke="#6600cc" stroke-width="2"/></svg>`;
+
+        function spawnPopup(amount, worldPos, type="coin") {
             const pos = worldPos.clone();
             pos.project(camera);
             const x = (pos.x * .5 + .5) * window.innerWidth;
@@ -357,23 +670,15 @@
 
             const el = document.createElement('div');
             el.className = 'coin-popup' + (amount >= 10 ? ' big' : '');
+            if(type === 'gem') el.className = 'coin-popup gem';
+            
             el.style.left = x + 'px';
             el.style.top = y + 'px';
-            el.innerHTML = `+${amount}${coinSvgStr}`;
+            el.innerHTML = `+${amount}${type==='gem' ? gemSvgStr : coinSvgStr}`;
             document.body.appendChild(el);
 
-            setTimeout(() => { el.remove(); }, 1500);
+            setTimeout(() => { el.remove(); }, type==='gem'? 2000 : 1500);
         }
-
-        function openModal(id) { document.getElementById(id).classList.add('show'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-
-        document.getElementById('home-shop-btn').addEventListener('click', () => { updateShopUI(); openModal('shop-modal'); });
-        document.getElementById('close-shop').addEventListener('click', () => closeModal('shop-modal'));
-        document.getElementById('home-manual-btn').addEventListener('click', () => openModal('manual-modal'));
-        document.getElementById('close-manual').addEventListener('click', () => closeModal('manual-modal'));
-        document.getElementById('home-play-btn').addEventListener('click', () => openModal('mode-modal'));
-        document.getElementById('close-mode').addEventListener('click', () => closeModal('mode-modal'));
 
         let gameMode = 'ffa';
         
@@ -388,19 +693,47 @@
             }, 2000);
         }
 
-        document.getElementById('btn-ffa').addEventListener('click', () => triggerLoading(() => startGame('ffa')));
-        document.getElementById('btn-teams').addEventListener('click', () => triggerLoading(() => startGame('teams')));
-        document.getElementById('rematch-btn').addEventListener('click', () => {
+        function triggerBackToMenu() {
             triggerLoading(() => {
                 resetGameScene();
                 document.getElementById('home-screen').style.display = 'flex';
                 updateShopUI();
             });
-        });
+        }
 
-        document.getElementById('buy-speed-btn').addEventListener('click', () => { if (coins >= getSpeedPrice()) { coins -= getSpeedPrice(); speedLvl++; saveProgress(); }});
-        document.getElementById('buy-reload-btn').addEventListener('click', () => { if (coins >= getReloadPrice()) { coins -= getReloadPrice(); reloadLvl++; saveProgress(); }});
-        document.getElementById('buy-radar-btn').addEventListener('click', () => { if (coins >= 300 && !hasRadar) { coins -= 300; hasRadar = true; saveProgress(); }});
+        document.getElementById('btn-ffa').addEventListener('click', () => triggerLoading(() => startGame('ffa')));
+        document.getElementById('btn-teams').addEventListener('click', () => triggerLoading(() => startGame('teams')));
+        
+        document.getElementById('rematch-btn').addEventListener('click', triggerBackToMenu);
+        document.getElementById('leave-spec-btn').addEventListener('click', triggerBackToMenu);
+
+        // Shop Buttons Logic
+        document.getElementById('buy-speed-btn').addEventListener('click', () => { 
+            if (coins >= getSpeedPrice()) {
+                showConfirm(`Upgrade Engine Speed for ${getSpeedPrice()} Coins?`, () => { coins -= getSpeedPrice(); speedLvl++; saveProgress(); });
+            }
+        });
+        document.getElementById('buy-reload-btn').addEventListener('click', () => { 
+            if (coins >= getReloadPrice()) {
+                showConfirm(`Upgrade Reload Speed for ${getReloadPrice()} Coins?`, () => { coins -= getReloadPrice(); reloadLvl++; saveProgress(); });
+            }
+        });
+        document.getElementById('buy-radar-btn').addEventListener('click', () => { 
+            if (coins >= 300 && !hasRadar) {
+                showConfirm(`Purchase Tactical Radar for 300 Coins?`, () => { coins -= 300; hasRadar = true; saveProgress(); });
+            }
+        });
+        
+        document.getElementById('buy-coins-1').addEventListener('click', () => { 
+            if(gems >= 1) showConfirm(`Trade 1 Gem for 100 Coins?`, () => { gems -= 1; coins += 100; saveProgress(); });
+        });
+        document.getElementById('buy-coins-2').addEventListener('click', () => { 
+            if(gems >= 3) showConfirm(`Trade 3 Gems for 250 Coins?`, () => { gems -= 3; coins += 250; saveProgress(); });
+        });
+        document.getElementById('buy-coins-3').addEventListener('click', () => { 
+            if(gems >= 5) showConfirm(`Trade 5 Gems for 500 Coins?`, () => { gems -= 5; coins += 500; saveProgress(); });
+        });
+        
         updateShopUI(); 
 
         const minimapContainer = document.getElementById('minimap-container');
@@ -417,7 +750,7 @@
         minimapContainer.addEventListener('click', toggleFullscreenRadar);
         minimapOverlay.addEventListener('click', toggleFullscreenRadar);
 
-        // --- 1. BASIC SETUP ---
+        // --- 1. BASIC SCENE SETUP ---
         const container = document.getElementById('game-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x001e36);
@@ -454,6 +787,7 @@
         const timerEl = document.getElementById('timer-box');
         const scoreEl = document.getElementById('scoreboard');
         const specText = document.getElementById('spec-text');
+        const leaveSpecBtn = document.getElementById('leave-spec-btn');
 
         function updateScoreboard() {
             if (gameMode === 'ffa') {
@@ -471,7 +805,7 @@
             }
         }
 
-        // --- 2. DESTRUCTIBLE BOATS (DETAILED OVERHAUL) ---
+        // --- 2. DESTRUCTIBLE BOATS ---
         const mats = {
             dark: new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5 }),
             metal: new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.3, metalness: 0.9 }),
@@ -481,7 +815,7 @@
         let allBoats = [];
         let playerBoat = null;
 
-        function createDestructibleBoat(teamData) {
+        function createDestructibleBoat(teamData, targetScene = scene) {
             const boatData = {
                 team: teamData, group: new THREE.Group(), parts: [], 
                 speed: 0, isPlayer: teamData.isPlayer, isEliminated: false, 
@@ -499,55 +833,73 @@
             };
 
             const mainMat = new THREE.MeshStandardMaterial({ color: teamData.color, roughness: 0.2, metalness: 0.4 });
-            const deckMat = new THREE.MeshStandardMaterial({ color: 0x3a4b5c, roughness: 0.8 }); // Distinct deck color
+            const deckMat = new THREE.MeshStandardMaterial({ color: 0x3a4b5c, roughness: 0.8 });
+            boatData.mainMat = mainMat;
 
-            // 1. Main Hull Base (Sleeker and deeper)
             addPart(new THREE.CylinderGeometry(1.4, 2.0, 5.5, 5), mats.dark, 0, 0.4, 0, 2.8).rotation.set(Math.PI/2, Math.PI/5, 0);
-            
-            // 2. Deck & Midsection
             addPart(new THREE.BoxGeometry(2.4, 0.4, 4.5), mainMat, 0, 0.9, 0.5, 2.5);
             addPart(new THREE.BoxGeometry(2.2, 0.2, 4.3), deckMat, 0, 1.15, 0.5, 2.2);
-
-            // 3. Cabin / Bridge
             addPart(new THREE.BoxGeometry(1.4, 1.2, 2.0), mainMat, 0, 1.7, 0.5, 1.5);
-            addPart(new THREE.BoxGeometry(1.5, 0.5, 2.1), mats.glass, 0, 1.9, 0.5, 1.2); // Windows
-
-            // 4. Side Armor Plating
+            addPart(new THREE.BoxGeometry(1.5, 0.5, 2.1), mats.glass, 0, 1.9, 0.5, 1.2); 
             addPart(new THREE.BoxGeometry(0.4, 1.0, 4.5), mats.metal, -1.3, 1.2, 0.5, 2.0);
             addPart(new THREE.BoxGeometry(0.4, 1.0, 4.5), mats.metal, 1.3, 1.2, 0.5, 2.0);
-
-            // 5. Missile Tubes (Sides of cabin)
             addPart(new THREE.CylinderGeometry(0.15, 0.15, 1.2, 8), mats.metal, -1.0, 1.8, 0.5, 0.5).rotation.x = Math.PI / 2;
             addPart(new THREE.CylinderGeometry(0.15, 0.15, 1.2, 8), mats.metal, 1.0, 1.8, 0.5, 0.5).rotation.x = Math.PI / 2;
-
-            // 6. Rear Spoiler / Tail Guard
             addPart(new THREE.BoxGeometry(3.6, 0.3, 1.0), mainMat, 0, 2.4, 2.4, 1.8); 
             addPart(new THREE.BoxGeometry(0.3, 1.2, 0.8), mats.dark, -1.5, 1.7, 2.4, 0.8); 
             addPart(new THREE.BoxGeometry(0.3, 1.2, 0.8), mats.dark, 1.5, 1.7, 2.4, 0.8); 
-
-            // 7. Smokestacks (Chunkier)
             addPart(new THREE.CylinderGeometry(0.25, 0.3, 1.5), mats.dark, -0.6, 1.4, 2.8, 0.8).rotation.x = -Math.PI / 6;
             addPart(new THREE.CylinderGeometry(0.25, 0.3, 1.5), mats.dark, 0.6, 1.4, 2.8, 0.8).rotation.x = -Math.PI / 6;
-
-            // 8. Radar Dish (Top of Cabin)
             addPart(new THREE.CylinderGeometry(0.6, 0.6, 0.1, 12), mats.metal, 0, 2.5, 0.5, 0.8).rotation.x = Math.PI/8;
-
-            // 9. Cannon Turret Base
             addPart(new THREE.CylinderGeometry(0.8, 0.9, 0.8, 8), mats.dark, 0, 1.4, -1.5, 1.0);
             
-            // 10. The Main Cannon
             const cannonMesh = addPart(new THREE.CylinderGeometry(0.25, 0.35, 3.0, 8), mats.metal, 0, 1.7, -1.8, 1.5);
             cannonMesh.rotation.x = Math.PI / 2;
             boatData.cannon = cannonMesh;
 
-            scene.add(boatData.group);
+            targetScene.add(boatData.group);
             return boatData;
         }
 
-        // --- 3. PROJECTILES & EXPLOSIONS ---
+        // --- SHOP 3D RENDERER SETUP ---
+        const shopCanvas = document.getElementById('shop-canvas');
+        const shopScene = new THREE.Scene();
+        const shopCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        shopCamera.position.set(10, 8, 10);
+        shopCamera.lookAt(0, 1, 0);
+
+        const shopRenderer = new THREE.WebGLRenderer({ canvas: shopCanvas, alpha: true, antialias: true });
+        
+        const shopAmbient = new THREE.HemisphereLight(0xffffff, 0x002244, 1.0);
+        shopScene.add(shopAmbient);
+        const shopDir = new THREE.DirectionalLight(0xffffff, 1.2);
+        shopDir.position.set(10, 20, 10);
+        shopScene.add(shopDir);
+
+        let shopColor = parseInt(playerEquippedColor.replace('#', '0x'));
+        let shopBoatData = createDestructibleBoat({ color: shopColor, isPlayer: false }, shopScene);
+        let shopBoatGroup = shopBoatData.group;
+        let shopBoatMainMat = shopBoatData.mainMat;
+        
+        let shopDrag = false;
+        let shopLastX = 0;
+        const shopContainer = document.getElementById('shop-3d-container');
+        shopContainer.addEventListener('pointerdown', (e) => { shopDrag = true; shopLastX = e.clientX; });
+        window.addEventListener('pointerup', () => { shopDrag = false; });
+        window.addEventListener('pointermove', (e) => {
+            if(shopDrag && isShopOpen) {
+                let delta = e.clientX - shopLastX;
+                shopBoatGroup.rotation.y += delta * 0.01;
+                shopLastX = e.clientX;
+            }
+        });
+
+
+        // --- 3. PROJECTILES, EXPLOSIONS & GEMS ---
         const cannonballs = [];
         const brokenDebris = []; 
         const explosionParticles = [];
+        let activeGem = null;
         
         const cbGeo = new THREE.SphereGeometry(0.3, 12, 12); 
         const cbMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 }); 
@@ -559,6 +911,18 @@
         const targetCircle = new THREE.Mesh(targetGeo, targetMat);
         targetCircle.rotation.x = -Math.PI / 2; targetCircle.position.y = 0.1; targetCircle.visible = false;
         scene.add(targetCircle);
+
+        function spawnGemObject(centerPos) {
+            const gemGeo = new THREE.OctahedronGeometry(1.2, 0);
+            const gemMat = new THREE.MeshStandardMaterial({ color: 0xaa22ff, emissive: 0x330066, metalness: 0.8, roughness: 0.1 });
+            activeGem = new THREE.Mesh(gemGeo, gemMat);
+            
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 30 + Math.random() * 30; 
+            
+            activeGem.position.set(centerPos.x + Math.cos(angle)*dist, 2, centerPos.z + Math.sin(angle)*dist);
+            scene.add(activeGem);
+        }
 
         function fireCannon(boatObj, targetVector = null) {
             if (!boatObj.cannon || !boatObj.cannon.userData.isAttached || boatObj.isEliminated) return;
@@ -628,6 +992,7 @@
                 shootPad.style.display = 'none';
                 targetCircle.visible = false;
                 specText.style.display = 'block';
+                leaveSpecBtn.style.display = 'block'; 
 
                 document.getElementById('go-title').innerText = "ELIMINATED";
                 document.getElementById('go-title').style.color = "#ff4444";
@@ -650,9 +1015,9 @@
                 let pinkAlive = allBoats.filter(b => b.team.alliance === 2 && !b.isEliminated).length;
                 
                 if (yellowAlive === 0 && gameState === 'playing') {
-                    setTimeout(() => endGame({name: "Pink Team", isPlayer: playerBoat.team.alliance === 2}), 1500);
+                    setTimeout(() => endGame({name: "Pink Team", isPlayer: playerBoat && playerBoat.team.alliance === 2}), 1500);
                 } else if (pinkAlive === 0 && gameState === 'playing') {
-                    setTimeout(() => endGame({name: "Yellow Team", isPlayer: playerBoat.team.alliance === 1}), 1500);
+                    setTimeout(() => endGame({name: "Yellow Team", isPlayer: playerBoat && playerBoat.team.alliance === 1}), 1500);
                 }
             }
         }
@@ -759,6 +1124,11 @@
             explosionParticles.forEach(p => scene.remove(p));
             explosionParticles.length = 0;
 
+            if (activeGem) {
+                scene.remove(activeGem);
+                activeGem = null;
+            }
+
             document.querySelectorAll('.confetti').forEach(e => e.remove());
             document.querySelectorAll('.coin-popup').forEach(e => e.remove());
 
@@ -778,12 +1148,13 @@
             document.getElementById('minimap-container').style.display = 'none';
             document.getElementById('minimap-overlay').style.display = 'none';
             specText.style.display = 'none';
+            leaveSpecBtn.style.display = 'none';
             shootPad.classList.remove('reloading');
             shootPad.innerHTML = 'HOLD<br>TO AIM';
         }
 
         function spawnBoatHelper(teamData) {
-            let boat = createDestructibleBoat(teamData);
+            let boat = createDestructibleBoat(teamData, scene);
             if (teamData.isPlayer) {
                 playerBoat = boat;
             } else {
@@ -811,8 +1182,10 @@
             activeTeams = [];
 
             if (gameMode === 'ffa') {
+                let pColInt = parseInt(playerEquippedColor.replace('#', '0x'));
+
                 const ffaTeams = [
-                    { name: "You (Blue)", color: 0x2266ff, uiColor: "#66aaff", isPlayer: true, score: 0, alliance: 1 },
+                    { name: "You", color: pColInt, uiColor: playerEquippedColor, isPlayer: true, score: 0, alliance: 1 },
                     { name: "Red", color: 0xcc2222, uiColor: "#ff6666", isPlayer: false, score: 0, alliance: 2 },
                     { name: "Green", color: 0x22aa33, uiColor: "#66ff66", isPlayer: false, score: 0, alliance: 3 },
                     { name: "Yellow", color: 0xddaa00, uiColor: "#ffff66", isPlayer: false, score: 0, alliance: 4 },
@@ -827,6 +1200,11 @@
                 for(let i=0; i<3; i++) {
                     spawnBoatHelper({ name: "Pink Team", color: 0xff66b2, uiColor: "#ff99cc", isPlayer: (!isPlayerYellow && i===0), alliance: 2 });
                 }
+            }
+
+            // 50% chance to spawn Gem near player
+            if (Math.random() < 0.5 && playerBoat) {
+                spawnGemObject(playerBoat.group.position);
             }
 
             updateScoreboard();
@@ -858,12 +1236,13 @@
                 } else {
                     let yellowAlive = allBoats.filter(b => b.team.alliance === 1 && !b.isEliminated).length;
                     let pinkAlive = allBoats.filter(b => b.team.alliance === 2 && !b.isEliminated).length;
-                    if (yellowAlive > pinkAlive) winner = {name: "Yellow Team", isPlayer: playerBoat.team.alliance === 1};
-                    else if (pinkAlive > yellowAlive) winner = {name: "Pink Team", isPlayer: playerBoat.team.alliance === 2};
+                    if (yellowAlive > pinkAlive) winner = {name: "Yellow Team", isPlayer: playerBoat && playerBoat.team.alliance === 1};
+                    else if (pinkAlive > yellowAlive) winner = {name: "Pink Team", isPlayer: playerBoat && playerBoat.team.alliance === 2};
                 }
             }
 
             specText.style.display = 'none';
+            leaveSpecBtn.style.display = 'none';
             document.getElementById('minimap-container').style.display = 'none';
             document.getElementById('minimap-overlay').style.display = 'none';
             document.getElementById('shoot-pad').style.display = 'none';
@@ -887,6 +1266,8 @@
         }
 
         function spawnConfetti() {
+            if (!settingsConfetti) return; 
+            
             const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
             for(let i=0; i<100; i++) {
                 let conf = document.createElement('div');
@@ -923,14 +1304,32 @@
 
                 ctx.beginPath();
                 ctx.arc(mapX, mapY, 8, 0, Math.PI * 2);
-                let isAlly = (boat.team.alliance === playerBoat.team.alliance);
-                ctx.fillStyle = isAlly ? '#4488ff' : '#ff4444';
+                let isAlly = playerBoat && (boat.team.alliance === playerBoat.team.alliance);
+                
+                ctx.fillStyle = isAlly ? (gameMode==='ffa' ? playerEquippedColor : boat.team.uiColor) : '#ff4444';
                 
                 ctx.fill();
                 ctx.lineWidth = 2;
                 ctx.strokeStyle = 'white';
                 ctx.stroke();
             });
+
+            if (activeGem) {
+                let mapX = ((activeGem.position.x + halfBounds) / worldBounds) * width;
+                let mapY = ((activeGem.position.z + halfBounds) / worldBounds) * height;
+                mapX = Math.max(10, Math.min(width - 10, mapX));
+                mapY = Math.max(10, Math.min(height - 10, mapY));
+
+                ctx.save();
+                ctx.translate(mapX, mapY);
+                ctx.rotate(Math.PI / 4);
+                ctx.fillStyle = '#bb44ff';
+                ctx.fillRect(-6, -6, 12, 12);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#ffffff';
+                ctx.strokeRect(-6, -6, 12, 12);
+                ctx.restore();
+            }
         }
 
         // --- 6. GAME LOOP ---
@@ -939,6 +1338,11 @@
         function animate() {
             requestAnimationFrame(animate);
             const time = Date.now() * 0.002;
+
+            if (isShopOpen) {
+                if(!shopDrag) shopBoatGroup.rotation.y += 0.005;
+                shopRenderer.render(shopScene, shopCamera);
+            }
 
             if (gameState === 'menu') {
                 camera.position.set(Math.sin(time * 0.1) * 50, 20, Math.cos(time * 0.1) * 50);
@@ -949,6 +1353,21 @@
 
             if (gameState === 'playing') {
                 renderMinimap(); 
+
+                if (activeGem) {
+                    activeGem.rotation.y += 0.02;
+                    activeGem.position.y = 2 + Math.sin(time * 2) * 0.5;
+
+                    if (!isSpectating && playerBoat && !playerBoat.isEliminated) {
+                        if (playerBoat.group.position.distanceTo(activeGem.position) < 4) {
+                            gems++;
+                            saveProgress();
+                            spawnPopup(1, activeGem.position, 'gem');
+                            scene.remove(activeGem);
+                            activeGem = null;
+                        }
+                    }
+                }
 
                 if (!isSpectating && playerBoat && !playerBoat.isEliminated) {
                     let accel = 0.01 + (speedLvl * 0.002);
@@ -1007,8 +1426,22 @@
                             let aimTarget = closestTarget.group.position.clone();
                             let hitRoll = Math.random();
                             
-                            if (hitRoll <= 0.05) { aimTarget.y += 1.5; } 
-                            else if (hitRoll <= 0.40) {
+                            // DIFFICULTY MODIFIERS
+                            let directHitChance = 0.05;
+                            let nearMissChance = 0.40;
+                            
+                            if (settingsAccuracy === 'easy') {
+                                directHitChance = 0.01; // Medium worse (1%)
+                                nearMissChance = 0.20;  // 19% chance to be near
+                            } else if (settingsAccuracy === 'hard') {
+                                directHitChance = 0.15; // Medium better (15%)
+                                nearMissChance = 0.65;  // 50% chance to be near
+                            }
+                            
+                            if (hitRoll <= directHitChance) { 
+                                aimTarget.y += 1.5; 
+                            } 
+                            else if (hitRoll <= nearMissChance) {
                                 let offsetAngle = Math.random() * Math.PI * 2;
                                 let offsetDist = 2.5 + Math.random() * 2; 
                                 aimTarget.x += Math.cos(offsetAngle) * offsetDist;
@@ -1071,14 +1504,13 @@
                                 b.userData.owner.team.score += 1;
                             }
                             
-                            // Check if the player scored the hit
                             if (b.userData.owner.isPlayer) {
                                 if (isCannonHit) {
                                     coins += 10;
-                                    spawnCoinPopup(10, tempVec); // Pass 3D world pos
+                                    spawnPopup(10, tempVec, 'coin'); 
                                 } else {
                                     coins += 5;
-                                    spawnCoinPopup(5, tempVec);
+                                    spawnPopup(5, tempVec, 'coin');
                                 }
                                 saveProgress();
                             }
@@ -1167,6 +1599,13 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+
+            if(isShopOpen) {
+                const rect = document.getElementById('shop-3d-container').getBoundingClientRect();
+                shopRenderer.setSize(rect.width, rect.height);
+                shopCamera.aspect = rect.width / rect.height;
+                shopCamera.updateProjectionMatrix();
+            }
         });
 
         animate();
